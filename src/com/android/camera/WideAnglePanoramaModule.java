@@ -329,6 +329,13 @@ public class WideAnglePanoramaModule
             return false;
         }
         Parameters parameters = mCameraDevice.getParameters();
+        String sceneMode = parameters.getSceneMode();
+        if ((null != sceneMode) && (!sceneMode.equals(Parameters.SCENE_MODE_AUTO))){
+            if (CameraUtil.isSupported(Parameters.SCENE_MODE_AUTO,
+                                           parameters.getSupportedSceneModes())){
+                parameters.setSceneMode(Parameters.SCENE_MODE_AUTO);
+            }
+        }
         setupCaptureParams(parameters);
         configureCamera(parameters);
         return true;
@@ -482,9 +489,24 @@ public class WideAnglePanoramaModule
     @Override
     public void onPreviewUILayoutChange(int l, int t, int r, int b) {
         Log.d(TAG, "layout change: " + (r - l) + "/" + (b - t));
+        boolean capturePending = false;
+        if (mCaptureState == CAPTURE_STATE_MOSAIC){
+            capturePending = true;
+        }
         mPreviewUIWidth = r - l;
         mPreviewUIHeight = b - t;
         configMosaicPreview();
+        if (capturePending == true){
+            mMainHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (!mPaused){
+                        mMainHandler.removeMessages(MSG_RESET_TO_PREVIEW);
+                        startCapture();
+                    }
+                }
+            });
+        }
     }
 
     @Override
