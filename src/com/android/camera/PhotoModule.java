@@ -644,7 +644,8 @@ public class PhotoModule
         }
     }
 
-    private void resizeForPreviewAspectRatio() {
+    @Override
+    public void resizeForPreviewAspectRatio() {
         setPreviewFrameLayoutCameraOrientation();
         Size size = mParameters.getPictureSize();
         Log.e(TAG,"Width = "+ size.width+ "Height = "+size.height);
@@ -1286,7 +1287,9 @@ public class PhotoModule
 
         mNamedImages.nameNewImage(mCaptureStartTime);
 
-        mFaceDetectionStarted = false;
+        if (mSnapshotMode != CameraInfo.CAMERA_SUPPORT_MODE_ZSL) {
+            mFaceDetectionStarted = false;
+        }
         UsageStatistics.onEvent(UsageStatistics.COMPONENT_CAMERA,
                 UsageStatistics.ACTION_CAPTURE_DONE, "Photo");
         return true;
