@@ -644,7 +644,8 @@ public class PhotoModule
         }
     }
 
-    private void resizeForPreviewAspectRatio() {
+    @Override
+    public void resizeForPreviewAspectRatio() {
         setPreviewFrameLayoutCameraOrientation();
         Size size = mParameters.getPictureSize();
         Log.e(TAG,"Width = "+ size.width+ "Height = "+size.height);
@@ -975,6 +976,10 @@ public class PhotoModule
             }else if ((mReceivedSnapNum == mBurstSnapNum)
                         && (mCameraState != LONGSHOT)){
                 mFocusManager.resetTouchFocus();
+                if (CameraUtil.FOCUS_MODE_CONTINUOUS_PICTURE.equals(
+                        mFocusManager.getFocusMode())) {
+                    mCameraDevice.cancelAutoFocus();
+                }
                 setCameraState(IDLE);
             }
 
@@ -1286,7 +1291,9 @@ public class PhotoModule
 
         mNamedImages.nameNewImage(mCaptureStartTime);
 
-        mFaceDetectionStarted = false;
+        if (mSnapshotMode != CameraInfo.CAMERA_SUPPORT_MODE_ZSL) {
+            mFaceDetectionStarted = false;
+        }
         UsageStatistics.onEvent(UsageStatistics.COMPONENT_CAMERA,
                 UsageStatistics.ACTION_CAPTURE_DONE, "Photo");
         return true;
@@ -1499,6 +1506,10 @@ public class PhotoModule
                } else {
                    setCameraState(IDLE);
                    mFocusManager.resetTouchFocus();
+                   if (CameraUtil.FOCUS_MODE_CONTINUOUS_PICTURE.equals(
+                           mFocusManager.getFocusMode())) {
+                       mCameraDevice.cancelAutoFocus();
+                   }
                }
            }
         }
@@ -1807,9 +1818,11 @@ public class PhotoModule
 
     @Override
     public void cancelAutoFocus() {
-        mCameraDevice.cancelAutoFocus();
-        setCameraState(IDLE);
-        setCameraParameters(UPDATE_PARAM_PREFERENCE);
+        if (null != mCameraDevice ) {
+            mCameraDevice.cancelAutoFocus();
+            setCameraState(IDLE);
+            setCameraParameters(UPDATE_PARAM_PREFERENCE);
+        }
     }
 
     // Preview area is touched. Handle touch focus.
