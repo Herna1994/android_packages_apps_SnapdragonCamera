@@ -408,6 +408,8 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
         public void goToFilmStrip();
 
         public void goToFullScreen();
+
+        public void clearSurfaceViews();
     }
 
     /**
@@ -1842,7 +1844,7 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
         // Check the current one.
         ViewItem curr = mViewItem[mCurrentItem];
         int dataId = curr.getId();
-        if (reporter.isDataRemoved(dataId)) {
+        if (reporter.isDataRemoved(dataId) || mDataAdapter.getTotalNumber() == 1) {
             reload();
             return;
         }
@@ -1918,7 +1920,9 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
             if (v != mCameraView) {
                 removeView(v);
             }
-            mDataAdapter.getImageData(mViewItem[i].getId()).recycle();
+            if (mDataAdapter.getImageData(mViewItem[i].getId()) != null) {
+                mDataAdapter.getImageData(mViewItem[i].getId()).recycle();
+            }
         }
 
         // Clear out the mViewItems and rebuild with camera in the center.
@@ -2328,6 +2332,19 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
             }
             enterFullScreen();
             scaleTo(1f, GEOMETRY_ADJUST_TIME_MS);
+        }
+
+        @Override
+        public void clearSurfaceViews() {
+            for(ViewItem item: mViewItem) {
+                if (item == null) {
+                    continue;
+                }
+                View v = item.getView();
+                if (v != mCameraView) {
+                    removeView(v);
+                }
+            }
         }
 
         private void cancelFlingAnimation() {
