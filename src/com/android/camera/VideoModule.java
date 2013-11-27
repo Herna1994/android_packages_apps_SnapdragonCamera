@@ -223,6 +223,13 @@ public class VideoModule implements CameraModule,
             return;
         }
         mParameters = mCameraDevice.getParameters();
+        String sceneMode = mParameters.getSceneMode();
+        if ((null != sceneMode) && (!sceneMode.equals(Parameters.SCENE_MODE_AUTO))){
+            if (CameraUtil.isSupported(Parameters.SCENE_MODE_AUTO,
+                                           mParameters.getSupportedSceneModes())){
+                mParameters.setSceneMode(Parameters.SCENE_MODE_AUTO);
+            }
+        }
     }
 
     //QCOM data Members Starts here
@@ -790,7 +797,8 @@ public class VideoModule implements CameraModule,
             mUI.cameraOrientationPreviewResize(false);
     }
 
-    private void resizeForPreviewAspectRatio() {
+    @Override
+    public void resizeForPreviewAspectRatio() {
         setPreviewFrameLayoutCameraOrientation();
         mUI.setAspectRatio(
                 (double) mProfile.videoFrameWidth / mProfile.videoFrameHeight);
