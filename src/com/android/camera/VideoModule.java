@@ -1852,12 +1852,28 @@ public class VideoModule implements CameraModule,
             mParameters.setPreviewFrameRate(mProfile.videoFrameRate);
         }
 
-        forceFlashOffIfSupported(!mUI.isVisible());
         videoWidth = mProfile.videoFrameWidth;
         videoHeight = mProfile.videoFrameHeight;
         String recordSize = videoWidth + "x" + videoHeight;
         Log.e(TAG,"Video dimension in App->"+recordSize);
         mParameters.set("video-size", recordSize);
+
+        // Set flash mode.
+        String flashMode = mPreferences.getString(
+                CameraSettings.KEY_VIDEOCAMERA_FLASH_MODE,
+                mActivity.getString(R.string.pref_camera_video_flashmode_default));
+
+        List<String> supportedFlash = mParameters.getSupportedFlashModes();
+        if (isSupported(flashMode, supportedFlash)) {
+            mParameters.setFlashMode(flashMode);
+        } else {
+            flashMode = mParameters.getFlashMode();
+            if (flashMode == null) {
+                flashMode = mActivity.getString(
+                        R.string.pref_camera_flashmode_no_flash);
+            }
+        }
+
         // Set white balance parameter.
         String whiteBalance = mPreferences.getString(
                 CameraSettings.KEY_WHITE_BALANCE,
@@ -2050,47 +2066,9 @@ public class VideoModule implements CameraModule,
         }
     }
 
-    private void forceFlashOffIfSupported(boolean forceOff) {
-        String flashMode;
-        if (!forceOff) {
-            flashMode = mPreferences.getString(
-                    CameraSettings.KEY_VIDEOCAMERA_FLASH_MODE,
-                    mActivity.getString(R.string.pref_camera_video_flashmode_default));
-        } else {
-            flashMode = Parameters.FLASH_MODE_OFF;
-        }
-        List<String> supportedFlash = mParameters.getSupportedFlashModes();
-        if (isSupported(flashMode, supportedFlash)) {
-            mParameters.setFlashMode(flashMode);
-        } else {
-            flashMode = mParameters.getFlashMode();
-            if (flashMode == null) {
-                flashMode = mActivity.getString(
-                        R.string.pref_camera_flashmode_no_flash);
-            }
-        }
-    }
-
-    /**
-     * Used to update the flash mode. Video mode can turn on the flash as torch
-     * mode, which we would like to turn on and off when we switching in and
-     * out to the preview.
-     *
-     * @param forceOff whether we want to force the flash off.
-     */
-    private void forceFlashOff(boolean forceOff) {
-        if (!mPreviewing || mParameters.getFlashMode() == null) {
-            return;
-        }
-        forceFlashOffIfSupported(forceOff);
-        mCameraDevice.setParameters(mParameters);
-        mUI.updateOnScreenIndicators(mParameters, mPreferences);
-    }
-
     @Override
     public void onPreviewFocusChanged(boolean previewFocused) {
         mUI.onPreviewFocusChanged(previewFocused);
-        forceFlashOff(!previewFocused);
     }
 
     @Override
