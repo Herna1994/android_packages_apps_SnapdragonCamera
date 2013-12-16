@@ -18,6 +18,8 @@
 <resources>
     <!-- Camera Preferences Video Quality entries -->
     <string-array name="pref_video_quality_entries" translatable="false">
+        <item>@string/pref_video_quality_entry_4kdci</item>
+        <item>@string/pref_video_quality_entry_4kuhd</item>
         <item>@string/pref_video_quality_entry_1080p</item>
         <item>@string/pref_video_quality_entry_720p</item>
         <item>@string/pref_video_quality_entry_480p</item>
@@ -31,6 +33,10 @@
    </string-array>
 
     <string-array name="pref_video_quality_entryvalues" translatable="false">
+        <!-- The integer value of CamcorderProfile.QUALITY_4kDCI -->
+        <item>13</item>
+        <!-- The integer value of CamcorderProfile.QUALITY_4kUHD -->
+        <item>12</item>
         <!-- The integer value of CamcorderProfile.QUALITY_1080P -->
         <item>6</item>
         <!-- The integer value of CamcorderProfile.QUALITY_720P -->
@@ -181,12 +187,15 @@
         <item>@string/pref_camera_picturesize_entry_1920x1080</item>
         <item>@string/pref_camera_picturesize_entry_2mp</item>
         <item>@string/pref_camera_picturesize_entry_2mp_wide</item>
+        <item>@string/pref_camera_picturesize_entry_1_5mp</item>
         <item>@string/pref_camera_picturesize_entry_1_3mp</item>
         <item>@string/pref_camera_picturesize_entry_1280x768</item>
         <item>@string/pref_camera_picturesize_entry_1280x720</item>
         <item>@string/pref_camera_picturesize_entry_1mp</item>
         <item>@string/pref_camera_picturesize_entry_800x600</item>
         <item>@string/pref_camera_picturesize_entry_800x480</item>
+        <item>960 x 720</item>
+        <item>720 x 480</item>
         <item>@string/pref_camera_picturesize_entry_vga</item>
         <item>@string/pref_camera_picturesize_entry_352x288</item>
         <item>@string/pref_camera_picturesize_entry_qvga</item>
@@ -196,7 +205,7 @@
          size to the first one in the list that is also supported by the
          driver -->
     <string-array name="pref_camera_picturesize_entryvalues" translatable="false">
-        <item>4128x3096</item>
+        <item>4208x3120</item>
         <item>4000x3000</item>
         <item>3264x2448</item>
         <item>3200x2400</item>
@@ -208,12 +217,15 @@
         <item>1920x1080</item>
         <item>1600x1200</item>
         <item>1920x1088</item>
+        <item>1440x1080</item>
         <item>1280x960</item>
         <item>1280x768</item>
         <item>1280x720</item>
         <item>1024x768</item>
         <item>800x600</item>
         <item>800x480</item>
+        <item>960x720</item>
+        <item>720x480</item>
         <item>640x480</item>
         <item>352x288</item>
         <item>320x240</item>
@@ -500,8 +512,8 @@
     </string-array>
 
     <string-array name="pref_camera_hdr_plus_labels" translatable="false">
-        <item>@string/pref_camera_scenemode_entry_hdr_plus</item>
-        <item>@string/pref_camera_scenemode_entry_hdr_plus</item>
+        <item>@string/pref_camera_scenemode_entry_turn_hdr_plus_on</item>
+        <item>@string/pref_camera_scenemode_entry_turn_hdr_plus_off</item>
     </string-array>
 
     <string-array name="pref_camera_hdr_plus_icons" translatable="false">
@@ -521,8 +533,8 @@
     </string-array>
 
     <string-array name="pref_camera_hdr_labels" translatable="false">
-        <item>@string/pref_camera_hdr_label</item>
-        <item>@string/pref_camera_hdr_label</item>
+        <item>@string/pref_camera_scenemode_entry_turn_hdr_on</item>
+        <item>@string/pref_camera_scenemode_entry_turn_hdr_off</item>
     </string-array>
 
     <string-array name="pref_camera_hdr_icons" translatable="false">
