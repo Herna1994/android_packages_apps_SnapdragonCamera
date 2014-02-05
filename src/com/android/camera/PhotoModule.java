@@ -442,10 +442,12 @@ public class PhotoModule
                 }
 
                 case CONFIGURE_SKIN_TONE_FACTOR: {
-                     if (isCameraIdle()) {
-                         mParameters = mCameraDevice.getParameters();
-                         mParameters.set("skinToneEnhancement", String.valueOf(msg.arg1));
-                         mCameraDevice.setParameters(mParameters);
+                     if ((mCameraDevice != null) && isCameraIdle()) {
+                         synchronized (mCameraDevice) {
+                             mParameters = mCameraDevice.getParameters();
+                             mParameters.set("skinToneEnhancement", String.valueOf(msg.arg1));
+                             mCameraDevice.setParameters(mParameters);
+                         }
                     }
                     break;
                 }
@@ -660,8 +662,12 @@ public class PhotoModule
 
     @Override
     public void resizeForPreviewAspectRatio() {
+        if ( mCameraDevice == null || mParameters == null) {
+            Log.e(TAG, "Camera not yet initialized");
+            return;
+        }
         setPreviewFrameLayoutCameraOrientation();
-        Size size = mParameters.getPictureSize();
+        Size size = mParameters.getPreviewSize();
         Log.e(TAG,"Width = "+ size.width+ "Height = "+size.height);
         mUI.setAspectRatio((float) size.width / size.height);
     }
@@ -1370,26 +1376,31 @@ public class PhotoModule
 
             overrideCameraSettings(flashMode, whiteBalance, focusMode,
                     Integer.toString(mParameters.getExposureCompensation()),
-                    mCurrTouchAfAec, mParameters.getAutoExposure());
+                    mCurrTouchAfAec, mParameters.getAutoExposure(),
+                    Integer.toString(mParameters.getSaturation()),
+                    Integer.toString(mParameters.getContrast()));
         } else if (mFocusManager.isZslEnabled()) {
             overrideCameraSettings(null, null, mParameters.getFocusMode(),
-                                   null, null, null);
+                                   null, null, null, null, null);
         } else {
-            overrideCameraSettings(null, null, null, null, null, null);
+            overrideCameraSettings(null, null, null, null, null, null, null, null);
         }
     }
 
     private void overrideCameraSettings(final String flashMode,
             final String whiteBalance, final String focusMode,
             final String exposureMode, final String touchMode,
-            final String autoExposure) {
+            final String autoExposure, final String saturation,
+            final String contrast) {
         mUI.overrideSettings(
                 CameraSettings.KEY_FLASH_MODE, flashMode,
                 CameraSettings.KEY_WHITE_BALANCE, whiteBalance,
                 CameraSettings.KEY_FOCUS_MODE, focusMode,
                 CameraSettings.KEY_EXPOSURE, exposureMode,
                 CameraSettings.KEY_TOUCH_AF_AEC, touchMode,
-                CameraSettings.KEY_AUTOEXPOSURE, autoExposure);
+                CameraSettings.KEY_AUTOEXPOSURE, autoExposure,
+                CameraSettings.KEY_SATURATION, saturation,
+                CameraSettings.KEY_CONTRAST, contrast);
     }
 
     private void loadCameraPreferences() {
@@ -1927,10 +1938,12 @@ public class PhotoModule
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
                 if (mbrightness > MINIMUM_BRIGHTNESS) {
                     mbrightness-=mbrightness_step;
-                    /* Set the "luma-adaptation" parameter */
-                    mParameters = mCameraDevice.getParameters();
-                    mParameters.set("luma-adaptation", String.valueOf(mbrightness));
-                    mCameraDevice.setParameters(mParameters);
+                    synchronized (mCameraDevice) {
+                        /* Set the "luma-adaptation" parameter */
+                        mParameters = mCameraDevice.getParameters();
+                        mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+                        mCameraDevice.setParameters(mParameters);
+                    }
                 }
                 brightnessProgressBar.setProgress(mbrightness);
                 brightnessProgressBar.setVisibility(View.VISIBLE);
@@ -1942,10 +1955,12 @@ public class PhotoModule
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
                 if (mbrightness < MAXIMUM_BRIGHTNESS) {
                     mbrightness+=mbrightness_step;
-                    /* Set the "luma-adaptation" parameter */
-                    mParameters = mCameraDevice.getParameters();
-                    mParameters.set("luma-adaptation", String.valueOf(mbrightness));
-                    mCameraDevice.setParameters(mParameters);
+                    synchronized (mCameraDevice) {
+                        /* Set the "luma-adaptation" parameter */
+                        mParameters = mCameraDevice.getParameters();
+                        mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+                        mCameraDevice.setParameters(mParameters);
+                    }
                 }
                 brightnessProgressBar.setProgress(mbrightness);
                 brightnessProgressBar.setVisibility(View.VISIBLE);
@@ -2557,10 +2572,6 @@ public class PhotoModule
             mRestartPreview = true;
         }
 
-        if(optimalSize.width != 0 && optimalSize.height != 0) {
-            mUI.updatePreviewAspectRatio((float) optimalSize.width
-                    / (float) optimalSize.height);
-        }
         Log.v(TAG, "Preview size is " + optimalSize.width + "x" + optimalSize.height);
 
         // Since changing scene mode may change supported values, set scene mode
@@ -2681,25 +2692,27 @@ public class PhotoModule
     // the subsets actually need updating. The PREFERENCE set needs extra
     // locking because the preference can be changed from GLThread as well.
     private void setCameraParameters(int updateSet) {
-        boolean doModeSwitch = false;
+        synchronized (mCameraDevice) {
+            boolean doModeSwitch = false;
 
-        if ((updateSet & UPDATE_PARAM_INITIALIZE) != 0) {
-            updateCameraParametersInitialize();
-        }
+            if ((updateSet & UPDATE_PARAM_INITIALIZE) != 0) {
+                updateCameraParametersInitialize();
+            }
 
-        if ((updateSet & UPDATE_PARAM_ZOOM) != 0) {
-            updateCameraParametersZoom();
-        }
+            if ((updateSet & UPDATE_PARAM_ZOOM) != 0) {
+                updateCameraParametersZoom();
+            }
 
-        if ((updateSet & UPDATE_PARAM_PREFERENCE) != 0) {
-            doModeSwitch = updateCameraParametersPreference();
-        }
+            if ((updateSet & UPDATE_PARAM_PREFERENCE) != 0) {
+                doModeSwitch = updateCameraParametersPreference();
+            }
 
-        mCameraDevice.setParameters(mParameters);
+            mCameraDevice.setParameters(mParameters);
 
-        // Switch to gcam module if HDR+ was selected
-        if (doModeSwitch && !mIsImageCaptureIntent) {
-            mHandler.sendEmptyMessage(SWITCH_TO_GCAM_MODULE);
+            // Switch to gcam module if HDR+ was selected
+            if (doModeSwitch && !mIsImageCaptureIntent) {
+                mHandler.sendEmptyMessage(SWITCH_TO_GCAM_MODULE);
+            }
         }
     }
 
