@@ -1379,9 +1379,9 @@ public class VideoModule implements CameraModule,
     @Override
     public void onError(MediaRecorder mr, int what, int extra) {
         Log.e(TAG, "MediaRecorder error. what=" + what + ". extra=" + extra);
+        stopVideoRecording();
         if (what == MediaRecorder.MEDIA_RECORDER_ERROR_UNKNOWN) {
             // We may have run out of space on the sdcard.
-            stopVideoRecording();
             mActivity.updateStorageSpaceAndHint();
         }
     }
@@ -1785,14 +1785,17 @@ public class VideoModule implements CameraModule,
             String hfrsize = videoWidth+"x"+videoHeight;
             Log.v(TAG, "current set resolution is : "+hfrsize);
             try {
-                for(Size size :  mParameters.getSupportedHfrSizes()){
-                    if(size != null) {
-                        Log.v(TAG, "supported hfr size : "+ size.width+ " "+size.height);
-                        if(videoWidth <= size.width && videoHeight <= size.height) {
-                            mUnsupportedHFRVideoSize = false;
-                            Log.v(TAG,"Current hfr resolution is supported");
-                            break;
-                        }
+                Size size = null;
+                if (isSupported(HighFrameRate,mParameters.getSupportedVideoHighFrameRateModes())) {
+                    int index = mParameters.getSupportedVideoHighFrameRateModes().indexOf(
+                        HighFrameRate);
+                    size = mParameters.getSupportedHfrSizes().get(index);
+                }
+                if (size != null) {
+                    Log.v(TAG, "supported hfr size : "+ size.width+ " "+size.height);
+                    if (videoWidth <= size.width && videoHeight <= size.height) {
+                        mUnsupportedHFRVideoSize = false;
+                        Log.v(TAG,"Current hfr resolution is supported");
                     }
                 }
             } catch (NullPointerException e){
