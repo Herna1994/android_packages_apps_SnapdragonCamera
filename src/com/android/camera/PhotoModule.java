@@ -1375,17 +1375,21 @@ public class PhotoModule
                     CameraSettings.KEY_WHITE_BALANCE,
                     mActivity.getString(R.string.pref_camera_whitebalance_default));
             String focusMode = mFocusManager.getFocusMode();
+            String colorEffect = mParameters.getColorEffect();
 
             overrideCameraSettings(flashMode, whiteBalance, focusMode,
                     Integer.toString(mParameters.getExposureCompensation()),
                     mCurrTouchAfAec, mParameters.getAutoExposure(),
                     Integer.toString(mParameters.getSaturation()),
-                    Integer.toString(mParameters.getContrast()));
+                    Integer.toString(mParameters.getContrast()),
+                    Integer.toString(mParameters.getSharpness()),
+                    colorEffect);
         } else if (mFocusManager.isZslEnabled()) {
             overrideCameraSettings(null, null, mParameters.getFocusMode(),
-                                   null, null, null, null, null);
+                                   null, null, null, null, null, null, null);
         } else {
-            overrideCameraSettings(null, null, null, null, null, null, null, null);
+            overrideCameraSettings(null, null, null, null, null, null, null,
+                                   null, null, null);
         }
     }
 
@@ -1393,7 +1397,8 @@ public class PhotoModule
             final String whiteBalance, final String focusMode,
             final String exposureMode, final String touchMode,
             final String autoExposure, final String saturation,
-            final String contrast) {
+            final String contrast, final String sharpness,
+            final String coloreffect) {
         mUI.overrideSettings(
                 CameraSettings.KEY_FLASH_MODE, flashMode,
                 CameraSettings.KEY_WHITE_BALANCE, whiteBalance,
@@ -1402,7 +1407,9 @@ public class PhotoModule
                 CameraSettings.KEY_TOUCH_AF_AEC, touchMode,
                 CameraSettings.KEY_AUTOEXPOSURE, autoExposure,
                 CameraSettings.KEY_SATURATION, saturation,
-                CameraSettings.KEY_CONTRAST, contrast);
+                CameraSettings.KEY_CONTRAST, contrast,
+                CameraSettings.KEY_SHARPNESS, sharpness,
+                CameraSettings.KEY_COLOR_EFFECT, coloreffect);
     }
 
     private void loadCameraPreferences() {
