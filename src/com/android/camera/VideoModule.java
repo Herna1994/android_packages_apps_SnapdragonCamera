@@ -166,7 +166,8 @@ public class VideoModule implements CameraModule,
 
     private LocationManager mLocationManager;
     private OrientationManager mOrientationManager;
-
+    private static final String KEY_PREVIEW_FORMAT = "preview-format";
+    private static final String QC_FORMAT_NV12_VENUS = "nv12-venus";
     private int mPendingSwitchCameraId;
     private final Handler mHandler = new MainHandler();
     private VideoUI mUI;
@@ -182,6 +183,8 @@ public class VideoModule implements CameraModule,
     private boolean mStartPrevPending = false;
     private boolean mStopPrevPending = false;
 
+    // The preview window is on focus
+    private boolean mPreviewFocused = false;
 
     private final MediaSaveService.OnMediaSavedListener mOnVideoSavedListener =
             new MediaSaveService.OnMediaSavedListener() {
@@ -225,6 +228,7 @@ public class VideoModule implements CameraModule,
             return;
         }
         mParameters = mCameraDevice.getParameters();
+        mPreviewFocused = true;
     }
 
     //QCOM data Members Starts here
@@ -292,6 +296,7 @@ public class VideoModule implements CameraModule,
     private int videoHeight;
     boolean mUnsupportedResolution = false;
     private boolean mUnsupportedHFRVideoSize = false;
+    private boolean mUnsupportedHSRVideoSize = false;
     private boolean mUnsupportedHFRVideoCodec = false;
 
     // This Handler is used to post message back onto the main thread of the
@@ -618,7 +623,8 @@ public class VideoModule implements CameraModule,
 
     @Override
     public void onShutterButtonClick() {
-        if (mUI.collapseCameraControls() || mSwitchingCamera) return;
+        if (mPaused || mUI.collapseCameraControls() ||
+                mSwitchingCamera) return;
 
         boolean stop = mMediaRecorderRecording;
 
@@ -757,13 +763,22 @@ public class VideoModule implements CameraModule,
         mPreferenceRead = true;
     }
 
+    private boolean is4KEnabled() {
+       if (mProfile.quality == CamcorderProfile.QUALITY_4kUHD ||
+           mProfile.quality == CamcorderProfile.QUALITY_4kDCI) {
+           return true;
+       } else {
+           return false;
+       }
+    }
+
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void getDesiredPreviewSize() {
         if (mCameraDevice == null) {
             return;
         }
         mParameters = mCameraDevice.getParameters();
-        if (mParameters.getSupportedVideoSizes() == null) {
+        if (mParameters.getSupportedVideoSizes() == null || is4KEnabled()) {
             mDesiredPreviewWidth = mProfile.videoFrameWidth;
             mDesiredPreviewHeight = mProfile.videoFrameHeight;
         } else { // Driver supports separates outputs for preview and video.
@@ -960,6 +975,7 @@ public class VideoModule implements CameraModule,
         mCameraDevice = null;
         mPreviewing = false;
         mSnapshotInProgress = false;
+        mPreviewFocused = false;
     }
 
     private void releasePreviewResources() {
@@ -1423,6 +1439,13 @@ public class VideoModule implements CameraModule,
             return;
         }
 
+        if (mUnsupportedHSRVideoSize == true) {
+            Log.e(TAG, "Unsupported HSR and video size combinations");
+            Toast.makeText(mActivity,R.string.error_app_unsupported_hsr, Toast.LENGTH_SHORT).show();
+            mStartRecPending = false;
+            return;
+        }
+
         if( mUnsupportedHFRVideoCodec == true) {
             Log.e(TAG, "Unsupported HFR and video codec combinations");
             Toast.makeText(mActivity, R.string.error_app_unsupported_hfr_codec,
@@ -1552,6 +1575,12 @@ public class VideoModule implements CameraModule,
                 fail = true;
             }
             mMediaRecorderRecording = false;
+
+            //If recording stops while snapshot is in progress, we might not get jpeg callback
+            //because cameraservice will disable picture related messages. Hence reset the
+            //flag here so that we can take liveshots in the next recording session.
+            mSnapshotInProgress = false;
+
             mOrientationManager.unlockOrientation();
 
             // If the activity is paused, this means activity is interrupted
@@ -1750,12 +1779,17 @@ public class VideoModule implements CameraModule,
             Log.v(TAG, "preview format set to YV12");
             mParameters.setPreviewFormat (ImageFormat.YV12);
         }
-
+       // if 4K recoding is enabled, set preview format to NV12_VENUS
+       if (is4KEnabled()) {
+           Log.v(TAG, "4K enabled, preview format set to NV12_VENUS");
+           mParameters.set(KEY_PREVIEW_FORMAT, QC_FORMAT_NV12_VENUS);
+       }
         // Set High Frame Rate.
         String HighFrameRate = mPreferences.getString(
             CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE,
             mActivity. getString(R.string.pref_camera_hfr_default));
-        if(!("off".equals(HighFrameRate))){
+
+        if(!("off".equals(HighFrameRate)) && !("hsr".equals(HighFrameRate))){
             mUnsupportedHFRVideoSize = true;
             String hfrsize = videoWidth+"x"+videoHeight;
             Log.v(TAG, "current set resolution is : "+hfrsize);
@@ -1782,10 +1816,47 @@ public class VideoModule implements CameraModule,
         }
         if (isSupported(HighFrameRate,
                 mParameters.getSupportedVideoHighFrameRateModes()) &&
-                !mUnsupportedHFRVideoSize) {
+                !mUnsupportedHFRVideoSize &&
+                !("hsr".equals(HighFrameRate))) {
             mParameters.setVideoHighFrameRate(HighFrameRate);
-            } else
+            mParameters.set("video-hsr", "off");
+        }
+        else {
             mParameters.setVideoHighFrameRate("off");
+        }
+        mUnsupportedHSRVideoSize = false;
+
+        if (("hsr".equals(HighFrameRate))) {
+            mUnsupportedHSRVideoSize = true;
+            String hsrsize = videoWidth+"x"+videoHeight;
+            Log.v(TAG, "current set resolution is : "+hsrsize);
+            try {
+                Size size = null;
+                if (isSupported("120",mParameters.getSupportedVideoHighFrameRateModes())) {
+                    int index = mParameters.getSupportedVideoHighFrameRateModes().indexOf(
+                        "120");
+                    size = mParameters.getSupportedHfrSizes().get(index);
+                }
+                if (size != null) {
+                    Log.v(TAG, "supported hsr size : "+ size.width+ " "+size.height);
+                    if (videoWidth <= size.width && videoHeight <= size.height) {
+                        mUnsupportedHSRVideoSize = false;
+                        Log.v(TAG,"Current hsr resolution is supported");
+                    }
+                }
+            } catch (NullPointerException e) {
+                Log.e(TAG, "supported hfr sizes is null");
+            }
+
+            if (mUnsupportedHSRVideoSize) Log.v(TAG,"Unsupported hsr resolution");
+        }
+
+        if (("hsr".equals(HighFrameRate)) && !mUnsupportedHSRVideoSize) {
+            mParameters.set("video-hsr", "on");
+        }
+        else {
+            mParameters.set("video-hsr", "off");
+        }
 
         // Read Flip mode from adb command
         //value: 0(default) - FLIP_MODE_OFF
@@ -1852,7 +1923,7 @@ public class VideoModule implements CameraModule,
             mParameters.setPreviewFrameRate(mProfile.videoFrameRate);
         }
 
-        forceFlashOffIfSupported(!mUI.isVisible());
+        forceFlashOffIfSupported(!mPreviewFocused);
         videoWidth = mProfile.videoFrameWidth;
         videoHeight = mProfile.videoFrameHeight;
         String recordSize = videoWidth + "x" + videoHeight;
@@ -2091,6 +2162,7 @@ public class VideoModule implements CameraModule,
     public void onPreviewFocusChanged(boolean previewFocused) {
         mUI.onPreviewFocusChanged(previewFocused);
         forceFlashOff(!previewFocused);
+        mPreviewFocused = previewFocused;
     }
 
     @Override
@@ -2108,6 +2180,7 @@ public class VideoModule implements CameraModule,
         @Override
         public void onPictureTaken(byte [] jpegData, CameraProxy camera) {
             Log.v(TAG, "onPictureTaken");
+            if(!mSnapshotInProgress || mPaused || mCameraDevice == null) return;
             mSnapshotInProgress = false;
             showVideoSnapshotUI(false);
             storeImage(jpegData, mLocation);

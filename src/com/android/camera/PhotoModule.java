@@ -192,6 +192,7 @@ public class PhotoModule
 
     private static final String PERSIST_LONG_ENABLE = "persist.camera.longshot.enable";
     private static final String PERSIST_LONG_SAVE = "persist.camera.longshot.save";
+    private static final String PERSIST_PREVIEW_RESTART = "persist.camera.feature.restart";
 
     private static final int MINIMUM_BRIGHTNESS = 0;
     private static final int MAXIMUM_BRIGHTNESS = 6;
@@ -213,6 +214,8 @@ public class PhotoModule
     private TextView LeftValue;
     private TextView RightValue;
     private TextView Title;
+
+    private boolean mPreviewRestartSupport = false;
 
     // mCropValue and mSaveUri are used only if isImageCaptureIntent() is true.
     private String mCropValue;
@@ -620,7 +623,6 @@ public class PhotoModule
                     mActivity.getString(R.string.setting_off_value));
         }
         updateSceneMode();
-        updateHdrMode();
         showTapToFocusToastIfNeeded();
 
 
@@ -659,7 +661,7 @@ public class PhotoModule
     @Override
     public void resizeForPreviewAspectRatio() {
         setPreviewFrameLayoutCameraOrientation();
-        Size size = mParameters.getPictureSize();
+        Size size = mParameters.getPreviewSize();
         Log.e(TAG,"Width = "+ size.width+ "Height = "+size.height);
         mUI.setAspectRatio((float) size.width / size.height);
     }
@@ -983,6 +985,7 @@ public class PhotoModule
             mFocusManager.updateFocusUI(); // Ensure focus indicator is hidden.
 
             boolean needRestartPreview = !mIsImageCaptureIntent
+                      && !mPreviewRestartSupport
                       && (mCameraState != LONGSHOT)
                       && (mSnapshotMode != CameraInfo.CAMERA_SUPPORT_MODE_ZSL)
                       && (mReceivedSnapNum == mBurstSnapNum);
@@ -1103,7 +1106,8 @@ public class PhotoModule
                 });
             }
             if (mSnapshotMode == CameraInfo.CAMERA_SUPPORT_MODE_ZSL &&
-                mCameraState != LONGSHOT) {
+                mCameraState != LONGSHOT &&
+                mReceivedSnapNum == mBurstSnapNum) {
                 cancelAutoFocus();
             }
         }
@@ -1284,6 +1288,13 @@ public class PhotoModule
 
         mBurstSnapNum = mParameters.getInt("num-snaps-per-shutter");
         mReceivedSnapNum = 0;
+        mPreviewRestartSupport = SystemProperties.getBoolean(
+                PERSIST_PREVIEW_RESTART, false);
+        mPreviewRestartSupport &= CameraSettings.isInternalPreviewSupported(
+                mParameters);
+        mPreviewRestartSupport &= (mBurstSnapNum == 1);
+        mPreviewRestartSupport &= PIXEL_FORMAT_JPEG.equalsIgnoreCase(
+                pictureFormat);
 
         // We don't want user to press the button again while taking a
         // multi-second HDR photo.
@@ -1333,17 +1344,6 @@ public class PhotoModule
             return intentCameraId;
         } else {
             return CameraSettings.readPreferredCameraId(preferences);
-        }
-    }
-
-    private void updateHdrMode() {
-        String zsl = mPreferences.getString(CameraSettings.KEY_ZSL,
-                         mActivity.getString(R.string.pref_camera_zsl_default));
-        if (zsl.equals("on")) {
-            mUI.overrideSettings(CameraSettings.KEY_CAMERA_HDR,
-                                      mParameters.getAEBracket());
-        } else {
-            mUI.overrideSettings(CameraSettings.KEY_CAMERA_HDR, null);
         }
     }
 
@@ -2328,8 +2328,6 @@ public class PhotoModule
 
         String zsl = mPreferences.getString(CameraSettings.KEY_ZSL,
                                   mActivity.getString(R.string.pref_camera_zsl_default));
-        String hdr = mPreferences.getString(CameraSettings.KEY_CAMERA_HDR,
-                mActivity.getString(R.string.pref_camera_hdr_default));
         mParameters.setZSLMode(zsl);
         if(zsl.equals("on")) {
             //Switch on ZSL Camera mode
@@ -2337,11 +2335,8 @@ public class PhotoModule
             mParameters.setCameraMode(1);
             mFocusManager.setZslEnable(true);
 
-            // Currently HDR is not supported under ZSL mode
-            Editor editor = mPreferences.edit();
-            editor.putString(CameraSettings.KEY_AE_BRACKET_HDR, mActivity.getString(R.string.setting_off_value));
-
             //Raw picture format is not supported under ZSL mode
+            Editor editor = mPreferences.edit();
             editor.putString(CameraSettings.KEY_PICTURE_FORMAT, mActivity.getString(R.string.pref_camera_picture_format_value_jpeg));
             editor.apply();
 
@@ -2362,15 +2357,6 @@ public class PhotoModule
                      mActivity.runOnUiThread(new Runnable() {
                      public void run() {
                 Toast.makeText(mActivity, R.string.error_app_unsupported_raw,
-                    Toast.LENGTH_SHORT).show();
-                         }
-                    });
-            }
-
-            if(hdr.equals(mActivity.getString(R.string.setting_on_value))) {
-                     mActivity.runOnUiThread(new Runnable() {
-                     public void run() {
-                Toast.makeText(mActivity, R.string.error_app_unsupported_hdr_zsl,
                     Toast.LENGTH_SHORT).show();
                          }
                     });
@@ -2555,10 +2541,6 @@ public class PhotoModule
             mRestartPreview = true;
         }
 
-        if(optimalSize.width != 0 && optimalSize.height != 0) {
-            mUI.updatePreviewAspectRatio((float) optimalSize.width
-                    / (float) optimalSize.height);
-        }
         Log.v(TAG, "Preview size is " + optimalSize.width + "x" + optimalSize.height);
 
         // Since changing scene mode may change supported values, set scene mode
@@ -2721,7 +2703,6 @@ public class PhotoModule
             }
             mRestartPreview = false;
             updateSceneMode();
-            updateHdrMode();
             mUpdateSet = 0;
         } else {
             if (!mHandler.hasMessages(SET_CAMERA_PARAMETERS_WHEN_IDLE)) {
