@@ -180,6 +180,7 @@ public class PhotoModule
     private boolean mContinuousFocusSupported;
     private boolean mTouchAfAecFlag;
     private boolean mLongshotSave = false;
+    private boolean mRefocus = false;
 
     // The degrees of the device rotated clockwise from its natural orientation.
     private int mOrientation = -1;
@@ -1017,7 +1018,7 @@ public class PhotoModule
             if (!mIsImageCaptureIntent) {
                 // Burst snapshot. Generate new image name.
                 if (mReceivedSnapNum > 1)
-                    mNamedImages.nameNewImage(mCaptureStartTime);
+                    mNamedImages.nameNewImage(mCaptureStartTime, mRefocus);
 
                 // Calculate the width and the height of the jpeg.
                 Size s = mParameters.getPictureSize();
@@ -1212,6 +1213,13 @@ public class PhotoModule
             mQueue.add(r);
         }
 
+        public void nameNewImage(long date, boolean refocus) {
+            NamedEntity r = new NamedEntity();
+            r.title = CameraUtil.createJpegName(date, refocus);
+            r.date = date;
+            mQueue.add(r);
+        }
+
         public NamedEntity getNextNameEntity() {
             synchronized(mQueue) {
                 if (!mQueue.isEmpty()) {
@@ -1301,6 +1309,14 @@ public class PhotoModule
             loc = mLocationManager.getCurrentLocation();
         }
         CameraUtil.setGpsParameters(mParameters, loc);
+
+        if (mRefocus) {
+            mParameters.set(CameraSettings.KEY_QC_LEGACY_BURST,
+                    CameraSettings.KEY_QC_RE_FOCUS_COUNT);
+        } else {
+            mParameters.remove(CameraSettings.KEY_QC_LEGACY_BURST);
+        }
+
         mCameraDevice.setParameters(mParameters);
         mParameters = mCameraDevice.getParameters();
 
@@ -1338,7 +1354,7 @@ public class PhotoModule
             setCameraState(SNAPSHOT_IN_PROGRESS);
         }
 
-        mNamedImages.nameNewImage(mCaptureStartTime);
+        mNamedImages.nameNewImage(mCaptureStartTime, mRefocus);
 
         if (mSnapshotMode != CameraInfo.CAMERA_SUPPORT_MODE_ZSL) {
             mFaceDetectionStarted = false;
@@ -2250,6 +2266,7 @@ public class PhotoModule
 
     private void qcomUpdateAdvancedFeatures(String ubiFocus,
                                             String chromaFlash,
+                                            String reFocus,
                                             String optiZoom) {
         if (CameraUtil.isSupported(ubiFocus,
               CameraSettings.getSupportedAFBracketingModes(mParameters))) {
@@ -2262,6 +2279,10 @@ public class PhotoModule
         if (CameraUtil.isSupported(optiZoom,
               CameraSettings.getSupportedOptiZoomModes(mParameters))) {
             mParameters.set(CameraSettings.KEY_QC_OPTI_ZOOM, optiZoom);
+        }
+        if (CameraUtil.isSupported(reFocus,
+                CameraSettings.getSupportedRefocusModes(mParameters))) {
+            mParameters.set(CameraSettings.KEY_QC_RE_FOCUS, reFocus);
         }
     }
     private void qcomUpdateCameraParametersPreference() {
@@ -2405,8 +2426,9 @@ public class PhotoModule
         String advancedFeature = mPreferences.getString(
                 CameraSettings.KEY_ADVANCED_FEATURES,
                 mActivity.getString(R.string.pref_camera_advanced_feature_default));
-        Log.v(TAG, " advancedFeature value =" + advancedFeature);
+        Log.e(TAG, " advancedFeature value =" + advancedFeature);
 
+        mRefocus = false;
         if(advancedFeature != null) {
              String ubiFocusOff = mActivity.getString(R.string.
                  pref_camera_advanced_feature_value_ubifocus_off);
@@ -2414,25 +2436,38 @@ public class PhotoModule
                  pref_camera_advanced_feature_value_chromaflash_off);
              String optiZoomOff = mActivity.getString(R.string.
                  pref_camera_advanced_feature_value_optizoom_off);
+             String reFocusOff = mActivity.getString(R.string.
+                 pref_camera_advanced_feature_value_refocus_off);
 
              if (advancedFeature.equals(mActivity.getString(R.string.
                  pref_camera_advanced_feature_value_ubifocus_on))) {
                  qcomUpdateAdvancedFeatures(advancedFeature,
                                            chromaFlashOff,
+                                           reFocusOff,
                                            optiZoomOff);
             } else if (advancedFeature.equals(mActivity.getString(R.string.
                  pref_camera_advanced_feature_value_chromaflash_on))) {
                  qcomUpdateAdvancedFeatures(ubiFocusOff,
                                            advancedFeature,
+                                           reFocusOff,
                                            optiZoomOff);
+            } else if (advancedFeature.equals(mActivity.getString(R.string.
+                 pref_camera_advanced_feature_value_refocus_on))) {
+                 qcomUpdateAdvancedFeatures(ubiFocusOff,
+                                           chromaFlashOff,
+                                           advancedFeature,
+                                           optiZoomOff);
+                 mRefocus = true;
             } else if (advancedFeature.equals(mActivity.getString(R.string.
                 pref_camera_advanced_feature_value_optizoom_on))) {
                 qcomUpdateAdvancedFeatures(ubiFocusOff,
                                            chromaFlashOff,
+                                           reFocusOff,
                                            advancedFeature);
             } else {
                 qcomUpdateAdvancedFeatures(ubiFocusOff,
                                            chromaFlashOff,
+                                           reFocusOff,
                                            optiZoomOff);
             }
         }
