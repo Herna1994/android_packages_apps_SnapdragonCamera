@@ -182,7 +182,7 @@ public class PhotoModule
     private boolean mLongshotSave = false;
 
     // The degrees of the device rotated clockwise from its natural orientation.
-    private int mOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
+    private int mOrientation = -1;
     private ComboPreferences mPreferences;
 
     private static final String sTempCropFilename = "crop-temp";
@@ -594,8 +594,9 @@ public class PhotoModule
             Log.e(TAG, "Failed to open camera:" + mCameraId + ", aborting.");
             return;
         }
-        mParameters = mCameraDevice.getParameters();
         initializeCapabilities();
+        mParameters = mInitialParams;
+
         CameraInfo info = CameraHolder.instance().getCameraInfo()[mCameraId];
         mMirror = (info.facing == CameraInfo.CAMERA_FACING_FRONT);
         mFocusManager.setMirror(mMirror);
@@ -619,7 +620,6 @@ public class PhotoModule
 
     // either open a new camera or switch cameras
     private void openCameraCommon() {
-        loadCameraPreferences();
 
         mUI.onCameraOpened(mPreferenceGroup, mPreferences, mParameters, this);
         if (mIsImageCaptureIntent) {
@@ -1681,11 +1681,10 @@ public class PhotoModule
             Log.e(TAG, "Failed to open camera:" + mCameraId);
             return false;
         }
-        mParameters = mCameraDevice.getParameters();
-
         initializeCapabilities();
+        mParameters = mInitialParams;
+        loadCameraPreferences();
         if (mFocusManager == null) initializeFocusManager();
-        setCameraParameters(UPDATE_PARAM_ALL);
         mHandler.sendEmptyMessage(CAMERA_OPEN_DONE);
         mCameraPreviewParamsReady = true;
         startPreview();
