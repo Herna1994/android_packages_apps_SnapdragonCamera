@@ -61,6 +61,7 @@ public class RotatableLayout extends FrameLayout {
 
     private void init() {
         mInitialOrientation = getResources().getConfiguration().orientation;
+        CameraUtil.sDefaultToPortrait = CameraUtil.isDefaultToPortrait((Activity) getContext());
     }
 
     @Override

@@ -155,6 +155,7 @@ public class CameraUtil {
             "android.intent.extras.CAMERA_FACING";
 
     private static float sPixelDensity = 1;
+    public static boolean sDefaultToPortrait = false;
     private static ImageFileNamer sImageFileNamer;
 
     private CameraUtil() {

@@ -532,9 +532,12 @@ public class VideoUI implements PieRenderer.PieListener,
     }
 
     public void setAspectRatio(double ratio) {
-        if (mOrientationResize &&
-                mActivity.getResources().getConfiguration().orientation
-                != Configuration.ORIENTATION_PORTRAIT) {
+        if(mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+            CameraUtil.sDefaultToPortrait = true;
+        else
+            CameraUtil.sDefaultToPortrait = false;
+
+        if (CameraUtil.sDefaultToPortrait && mOrientationResize){
             ratio = 1 / ratio;
         }
 
