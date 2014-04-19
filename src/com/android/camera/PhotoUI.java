@@ -60,6 +60,8 @@ import com.android.camera.util.CameraUtil;
 import com.android.camera2.R;
 
 import java.util.List;
+import com.android.camera.util.CameraUtil;
+
 
 public class PhotoUI implements PieListener,
     PreviewGestures.SingleTapListener,
@@ -242,9 +244,12 @@ public class PhotoUI implements PieListener,
     public void setAspectRatio(float ratio) {
         if (ratio <= 0.0) throw new IllegalArgumentException();
 
-        if (mOrientationResize &&
-                mActivity.getResources().getConfiguration().orientation
-                != Configuration.ORIENTATION_PORTRAIT) {
+    if(mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+        CameraUtil.sDefaultToPortrait = true;
+    else
+        CameraUtil.sDefaultToPortrait = false;
+
+        if (CameraUtil.sDefaultToPortrait && mOrientationResize){
             ratio = 1 / ratio;
         }
 
