@@ -1365,7 +1365,7 @@ public class PhotoModule
     }
 
     private void updateCameraSettings() {
-        String sceneMode = mSceneMode;
+        String sceneMode = null;
         String flashMode = null;
         String redeyeReduction = null;
         String aeBracketing = null;
