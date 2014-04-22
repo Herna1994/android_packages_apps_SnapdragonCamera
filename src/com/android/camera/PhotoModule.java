@@ -2215,7 +2215,8 @@ public class PhotoModule
         //Set Brightness.
         mParameters.set("luma-adaptation", String.valueOf(mbrightness));
 
-        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
+        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode) ||
+            CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
             // Set Touch AF/AEC parameter.
             String touchAfAec = mPreferences.getString(
                  CameraSettings.KEY_TOUCH_AF_AEC,
@@ -2413,6 +2414,7 @@ public class PhotoModule
             Editor editor = mPreferences.edit();
             editor.putString(CameraSettings.KEY_PICTURE_FORMAT, mActivity.getString(R.string.pref_camera_picture_format_value_jpeg));
             editor.apply();
+            mUI.overrideSettings(CameraSettings.KEY_PICTURE_FORMAT, mActivity.getString(R.string.pref_camera_picture_format_entry_jpeg));
 
             //Try to set CAF for ZSL
             if(CameraUtil.isSupported(Parameters.FOCUS_MODE_CONTINUOUS_PICTURE,
@@ -2711,6 +2713,8 @@ public class PhotoModule
             mParameters.setFocusMode(mFocusManager.getFocusMode());
         } else {
             mFocusManager.overrideFocusMode(mParameters.getFocusMode());
+            if (hdrOn)
+                mParameters.setFlashMode(Parameters.FLASH_MODE_OFF);
         }
 
         if (mContinuousFocusSupported && ApiHelper.HAS_AUTO_FOCUS_MOVE_CALLBACK) {
