@@ -301,6 +301,7 @@ public class VideoModule implements CameraModule,
     private boolean mUnsupportedHFRVideoSize = false;
     private boolean mUnsupportedHSRVideoSize = false;
     private boolean mUnsupportedHFRVideoCodec = false;
+    private String mDefaultAntibanding = null;
 
     // This Handler is used to post message back onto the main thread of the
     // application
@@ -1835,6 +1836,23 @@ public class VideoModule implements CameraModule,
             mParameters.set(CameraSettings.KEY_QC_DIS_MODE, disMode);
         }
 
+        if (mDefaultAntibanding == null) {
+            mDefaultAntibanding = mParameters.getAntibanding();
+            Log.d(TAG, "default antibanding value = " + mDefaultAntibanding);
+        }
+
+        if (disMode.equals("enable")) {
+            Log.d(TAG, "dis is enabled, set antibanding to auto.");
+            if (isSupported(Parameters.ANTIBANDING_AUTO, mParameters.getSupportedAntibanding())) {
+                mParameters.setAntibanding(Parameters.ANTIBANDING_AUTO);
+            }
+        } else {
+            if (isSupported(mDefaultAntibanding, mParameters.getSupportedAntibanding())) {
+                mParameters.setAntibanding(mDefaultAntibanding);
+            }
+        }
+        Log.d(TAG, "antiBanding value = " + mParameters.getAntibanding());
+
         mUnsupportedHFRVideoSize = false;
         mUnsupportedHFRVideoCodec = false;
         // To set preview format as YV12 , run command
@@ -1997,6 +2015,27 @@ public class VideoModule implements CameraModule,
              mParameters.setVideoHDRMode(videoHDR);
         } else
              mParameters.setVideoHDRMode("off");
+
+        //HFR/HSR recording not supported for DIS and/ TimeLapse option
+        String hfr = mParameters.getVideoHighFrameRate();
+        String hsr = mParameters.get("video-hsr");
+        if ( ((hfr != null) && (!hfr.equals("off"))) ||
+             ((hsr != null) && (!hsr.equals("off"))) ) {
+             // Read time lapse recording interval.
+             String frameIntervalStr = mPreferences.getString(
+                    CameraSettings.KEY_VIDEO_TIME_LAPSE_FRAME_INTERVAL,
+                    mActivity.getString(R.string.pref_video_time_lapse_frame_interval_default));
+             int timeLapseInterval = Integer.parseInt(frameIntervalStr);
+             if ((timeLapseInterval != 0) || (disMode.equals("enable")) ) {
+                Log.v(TAG,"DIS/Time Lapse ON for HFR/HSR selection, turning HFR/HSR off");
+                Toast.makeText(mActivity, R.string.error_app_unsupported_hfr_selection,
+                          Toast.LENGTH_LONG).show();
+                mParameters.setVideoHighFrameRate("off");
+                mParameters.set("video-hsr", "off");
+                mUI.overrideSettings(CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE,"disable");
+                mUI.initializePopup(mPreferenceGroup);
+             }
+        }
     }
     @SuppressWarnings("deprecation")
     private void setCameraParameters() {
