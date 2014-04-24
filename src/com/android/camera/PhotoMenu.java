@@ -57,6 +57,8 @@ public class PhotoMenu extends PieController
     private AbstractSettingPopup mPopup;
     private CameraActivity mActivity;
     private int popupNum = 0;
+    private PieItem mHdrItem = null;
+    private PieItem mHdrPlusItem = null;
 
     public PhotoMenu(CameraActivity activity, PhotoUI ui, PieRenderer pie) {
         super(activity, pie);
@@ -80,14 +82,14 @@ public class PhotoMenu extends PieController
 
         // HDR+ (GCam).
         if (group.findPreference(CameraSettings.KEY_CAMERA_HDR_PLUS) != null) {
-            item = makeSwitchItem(CameraSettings.KEY_CAMERA_HDR_PLUS, true);
-            mRenderer.addItem(item);
+            mHdrPlusItem = makeSwitchItem(CameraSettings.KEY_CAMERA_HDR_PLUS, true);
+            mRenderer.addItem(mHdrPlusItem);
         }
 
         // HDR.
         if (group.findPreference(CameraSettings.KEY_CAMERA_HDR) != null) {
-            item = makeSwitchItem(CameraSettings.KEY_CAMERA_HDR, true);
-            mRenderer.addItem(item);
+            mHdrItem = makeSwitchItem(CameraSettings.KEY_CAMERA_HDR, true);
+            mRenderer.addItem(mHdrItem);
         }
 
         mOtherKeys1 = new String[] {
@@ -95,12 +97,12 @@ public class PhotoMenu extends PieController
                 CameraSettings.KEY_RECORD_LOCATION,
                 CameraSettings.KEY_PICTURE_SIZE,
                 CameraSettings.KEY_HISTOGRAM,
-                CameraSettings.KEY_PICTURE_FORMAT,
                 CameraSettings.KEY_JPEG_QUALITY,
                 CameraSettings.KEY_ZSL,
                 CameraSettings.KEY_TIMER,
                 CameraSettings.KEY_TIMER_SOUND_EFFECTS,
-                CameraSettings.KEY_CAMERA_SAVEPATH
+                CameraSettings.KEY_CAMERA_SAVEPATH,
+                CameraSettings.KEY_LONGSHOT
         };
 
         mOtherKeys2 = new String[] {
@@ -109,6 +111,7 @@ public class PhotoMenu extends PieController
                 CameraSettings.KEY_FACE_RECOGNITION,
                 CameraSettings.KEY_TOUCH_AF_AEC,
                 CameraSettings.KEY_SELECTABLE_ZONE_AF,
+                CameraSettings.KEY_PICTURE_FORMAT,
                 CameraSettings.KEY_SATURATION,
                 CameraSettings.KEY_CONTRAST,
                 CameraSettings.KEY_SHARPNESS,
@@ -251,6 +254,10 @@ public class PhotoMenu extends PieController
          popup3.setPreferenceEnabled(CameraSettings.KEY_FOCUS_MODE,false);
          popup2.setPreferenceEnabled(CameraSettings.KEY_AUTOEXPOSURE,false);
          popup2.setPreferenceEnabled(CameraSettings.KEY_TOUCH_AF_AEC,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_SATURATION,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_CONTRAST,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_SHARPNESS,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_COLOR_EFFECT,false);
          popup3.setPreferenceEnabled(CameraSettings.KEY_FLASH_MODE,false);
          popup3.setPreferenceEnabled(CameraSettings.KEY_WHITE_BALANCE,false);
          popup3.setPreferenceEnabled(CameraSettings.KEY_EXPOSURE,false);
@@ -261,13 +268,51 @@ public class PhotoMenu extends PieController
      if ((faceDetection != null) && !Parameters.FACE_DETECTION_ON.equals(faceDetection)){
          popup2.setPreferenceEnabled(CameraSettings.KEY_FACE_RECOGNITION,false);
      }
+
+     pref = mPreferenceGroup.findPreference(CameraSettings.KEY_ADVANCED_FEATURES);
+     String advancedFeatures = (pref != null) ? pref.getValue() : null;
+
+     String ubiFocusOn = mActivity.getString(R.string.
+         pref_camera_advanced_feature_value_ubifocus_on);
+     String chromaFlashOn = mActivity.getString(R.string.
+         pref_camera_advanced_feature_value_chromaflash_on);
+     String optiZoomOn = mActivity.getString(R.string.
+         pref_camera_advanced_feature_value_optizoom_on);
+
+     if ((advancedFeatures != null) && (advancedFeatures.equals(ubiFocusOn) ||
+             advancedFeatures.equals(chromaFlashOn) ||
+             advancedFeatures.equals(ubiFocusOn))) {
+         popup3.setPreferenceEnabled(CameraSettings.KEY_FOCUS_MODE,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_FLASH_MODE,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_AE_BRACKET_HDR,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_REDEYE_REDUCTION,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_EXPOSURE,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_COLOR_EFFECT,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_TOUCH_AF_AEC,false);
+         popup1.setPreferenceEnabled(CameraSettings.KEY_SCENE_MODE,false);
+
+         if (mHdrItem != null) {
+            mHdrItem.setEnabled(false);
+         }
+         if (mHdrPlusItem != null) {
+            mHdrPlusItem.setEnabled(false);
+         }
+     } else {
+         if (mHdrItem != null) {
+            mHdrItem.setEnabled(true);
+         }
+         if (mHdrPlusItem != null) {
+            mHdrPlusItem.setEnabled(true);
+         }
+     }
+
      if (mListener != null) {
          mListener.onSharedPreferenceChanged();
      }
      }
 
-    public void popupDismissed() {
-        if (mPopupStatus == POPUP_SECOND_LEVEL) {
+    public void popupDismissed(boolean dismissAll) {
+        if (!dismissAll && mPopupStatus == POPUP_SECOND_LEVEL) {
             initializePopup();
             mPopupStatus = POPUP_FIRST_LEVEL;
                 if (popupNum == 1)
