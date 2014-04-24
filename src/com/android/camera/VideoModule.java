@@ -301,6 +301,7 @@ public class VideoModule implements CameraModule,
     private boolean mUnsupportedHFRVideoSize = false;
     private boolean mUnsupportedHSRVideoSize = false;
     private boolean mUnsupportedHFRVideoCodec = false;
+    private String mDefaultAntibanding = null;
 
     // This Handler is used to post message back onto the main thread of the
     // application
@@ -1835,6 +1836,23 @@ public class VideoModule implements CameraModule,
             mParameters.set(CameraSettings.KEY_QC_DIS_MODE, disMode);
         }
 
+        if (mDefaultAntibanding == null) {
+            mDefaultAntibanding = mParameters.getAntibanding();
+            Log.d(TAG, "default antibanding value = " + mDefaultAntibanding);
+        }
+
+        if (disMode.equals("enable")) {
+            Log.d(TAG, "dis is enabled, set antibanding to auto.");
+            if (isSupported(Parameters.ANTIBANDING_AUTO, mParameters.getSupportedAntibanding())) {
+                mParameters.setAntibanding(Parameters.ANTIBANDING_AUTO);
+            }
+        } else {
+            if (isSupported(mDefaultAntibanding, mParameters.getSupportedAntibanding())) {
+                mParameters.setAntibanding(mDefaultAntibanding);
+            }
+        }
+        Log.d(TAG, "antiBanding value = " + mParameters.getAntibanding());
+
         mUnsupportedHFRVideoSize = false;
         mUnsupportedHFRVideoCodec = false;
         // To set preview format as YV12 , run command
@@ -2014,9 +2032,21 @@ public class VideoModule implements CameraModule,
                           Toast.LENGTH_LONG).show();
                 mParameters.setVideoHighFrameRate("off");
                 mParameters.set("video-hsr", "off");
-                mUI.overrideSettings(CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE,"disable");
-                mUI.initializePopup(mPreferenceGroup);
+                mUI.overrideSettings(CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE,"off");
              }
+        }
+
+        //getSupportedPictureSizes will always send a sorted a list in descending order
+        Size biggestSize = mParameters.getSupportedPictureSizes().get(0);
+
+        if (biggestSize.width <= videoWidth || biggestSize.height <= videoHeight) {
+            if (disMode.equals("enable")) {
+                Log.v(TAG,"DIS is not supported for this video quality");
+                Toast.makeText(mActivity, R.string.error_app_unsupported_dis,
+                               Toast.LENGTH_LONG).show();
+                mParameters.set(CameraSettings.KEY_QC_DIS_MODE, "disable");
+                mUI.overrideSettings(CameraSettings.KEY_DIS,"disable");
+            }
         }
     }
     @SuppressWarnings("deprecation")
