@@ -101,7 +101,8 @@ public class PhotoMenu extends PieController
                 CameraSettings.KEY_ZSL,
                 CameraSettings.KEY_TIMER,
                 CameraSettings.KEY_TIMER_SOUND_EFFECTS,
-                CameraSettings.KEY_CAMERA_SAVEPATH
+                CameraSettings.KEY_CAMERA_SAVEPATH,
+                CameraSettings.KEY_LONGSHOT
         };
 
         mOtherKeys2 = new String[] {
@@ -310,8 +311,8 @@ public class PhotoMenu extends PieController
      }
      }
 
-    public void popupDismissed() {
-        if (mPopupStatus == POPUP_SECOND_LEVEL) {
+    public void popupDismissed(boolean dismissAll) {
+        if (!dismissAll && mPopupStatus == POPUP_SECOND_LEVEL) {
             initializePopup();
             mPopupStatus = POPUP_FIRST_LEVEL;
                 if (popupNum == 1)
