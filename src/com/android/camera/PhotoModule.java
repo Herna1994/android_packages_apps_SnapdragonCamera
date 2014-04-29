@@ -1345,7 +1345,7 @@ public class PhotoModule
     }
 
     private void updateCameraSettings() {
-        String sceneMode = mSceneMode;
+        String sceneMode = null;
         String flashMode = null;
         String redeyeReduction = null;
         String aeBracketing = null;
@@ -1380,7 +1380,6 @@ public class PhotoModule
             colorEfect = mActivity.getString(R.string.
                 pref_camera_coloreffect_default);
             exposureCompensation = CameraSettings.EXPOSURE_DEFAULT_VALUE;
-            touchAfAec = Parameters.TOUCH_AF_AEC_OFF;
 
             overrideCameraSettings(flashMode, null, focusMode,
                                    exposureCompensation, touchAfAec, null,
