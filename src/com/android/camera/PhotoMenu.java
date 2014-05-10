@@ -31,6 +31,7 @@ import com.android.camera.ui.PieRenderer;
 import com.android.camera2.R;
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.widget.Toast;
 import android.util.Log;
 
 import java.util.Locale;
@@ -59,6 +60,7 @@ public class PhotoMenu extends PieController
     private int popupNum = 0;
     private PieItem mHdrItem = null;
     private PieItem mHdrPlusItem = null;
+    private boolean mHdrOn = false;
 
     public PhotoMenu(CameraActivity activity, PhotoUI ui, PieRenderer pie) {
         super(activity, pie);
@@ -383,8 +385,16 @@ public class PhotoMenu extends PieController
         if (notSame(pref, CameraSettings.KEY_CAMERA_HDR, mSettingOff)) {
             setPreference(CameraSettings.KEY_SCENE_MODE, Parameters.SCENE_MODE_AUTO);
             setPreference(CameraSettings.KEY_ZSL,mSettingOff);
+            Toast.makeText(mActivity, R.string.hdr_enable_message,
+                            Toast.LENGTH_LONG).show();
+            mHdrOn = true;
         } else if (notSame(pref, CameraSettings.KEY_SCENE_MODE, Parameters.SCENE_MODE_AUTO)) {
             setPreference(CameraSettings.KEY_CAMERA_HDR, mSettingOff);
+            if (mHdrOn) {
+                Toast.makeText(mActivity, R.string.scene_enable_message,
+                            Toast.LENGTH_LONG).show();
+            }
+            mHdrOn = false;
         }
         if (notSame(pref,CameraSettings.KEY_ZSL,mSettingOff)){
             setPreference(CameraSettings.KEY_CAMERA_HDR, mSettingOff);
