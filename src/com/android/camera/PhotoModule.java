@@ -1092,6 +1092,13 @@ public class PhotoModule
                 }
                 // Animate capture with real jpeg data instead of a preview frame.
                 if (mCameraState != LONGSHOT) {
+                    Size pic_size = mParameters.getPictureSize();
+                    if ((pic_size.width <= 352) && (pic_size.height<= 288)) {
+                        mUI.setDownFactor(2); //Downsample by 2 for CIF & below
+                    }
+                    else {
+                        mUI.setDownFactor(4);
+                    }
                     mUI.animateCapture(jpegData, orientation, mMirror);
                 }
             } else {
@@ -2295,6 +2302,11 @@ public class PhotoModule
         //qcom Related Parameter update
         //Set Brightness.
         mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+
+        String longshot_enable = mPreferences.getString(
+                CameraSettings.KEY_LONGSHOT,
+                mActivity.getString(R.string.pref_camera_longshot_default));
+        mParameters.set("long-shot", longshot_enable);
 
         if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode) ||
             CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
