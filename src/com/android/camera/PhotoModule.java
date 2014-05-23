@@ -620,6 +620,7 @@ public class PhotoModule
 
     // either open a new camera or switch cameras
     private void openCameraCommon() {
+        loadCameraPreferences();
 
         mUI.onCameraOpened(mPreferenceGroup, mPreferences, mParameters, this);
         if (mIsImageCaptureIntent) {
@@ -1745,7 +1746,6 @@ public class PhotoModule
         }
         initializeCapabilities();
         mParameters = mInitialParams;
-        loadCameraPreferences();
         if (mFocusManager == null) initializeFocusManager();
         mHandler.sendEmptyMessage(CAMERA_OPEN_DONE);
         mCameraPreviewParamsReady = true;
