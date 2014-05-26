@@ -395,7 +395,19 @@ public class PhotoMenu extends PieController
                             Toast.LENGTH_LONG).show();
             }
             mHdrOn = false;
+        } else if (notSame(pref,CameraSettings.KEY_AE_BRACKET_HDR,"Off")) {
+            Toast.makeText(mActivity,
+                           R.string.flash_aebracket_message,Toast.LENGTH_SHORT).show();
+            setPreference(CameraSettings.KEY_FLASH_MODE,Parameters.FLASH_MODE_OFF);
+        } else if (notSame(pref,CameraSettings.KEY_FLASH_MODE,"Off")) {
+            ListPreference aePref =
+                      mPreferenceGroup.findPreference(CameraSettings.KEY_AE_BRACKET_HDR);
+            if (notSame(aePref,CameraSettings.KEY_AE_BRACKET_HDR,"Off")) {
+               Toast.makeText(mActivity,
+                              R.string.flash_aebracket_message,Toast.LENGTH_SHORT).show();
+            }
         }
+
         if (notSame(pref,CameraSettings.KEY_ZSL,mSettingOff)){
             setPreference(CameraSettings.KEY_CAMERA_HDR, mSettingOff);
         }
