@@ -1452,6 +1452,10 @@ public class PhotoModule
                     Integer.toString(mParameters.getSharpness()),
                     colorEffect,
                     sceneMode, redeyeReduction, aeBracketing);
+            if (CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
+                mUI.overrideSettings(CameraSettings.KEY_LONGSHOT,
+                        mActivity.getString(R.string.setting_off_value));
+            }
         } else if (mFocusManager.isZslEnabled()) {
             focusMode = mParameters.getFocusMode();
             overrideCameraSettings(flashMode, null, focusMode,
@@ -1470,6 +1474,9 @@ public class PhotoModule
             String fMode = Parameters.FLASH_MODE_OFF;
             mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, fMode);
             mParameters.setFlashMode(fMode);
+        }
+        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
+            mUI.overrideSettings(CameraSettings.KEY_LONGSHOT, null);
         }
     }
 
