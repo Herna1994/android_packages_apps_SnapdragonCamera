@@ -271,6 +271,8 @@ public class PhotoMenu extends PieController
          popup2.setPreferenceEnabled(CameraSettings.KEY_FACE_RECOGNITION,false);
      }
 
+     popup1.setPreferenceEnabled(CameraSettings.KEY_ZSL, !mUI.isCountingDown());
+
      pref = mPreferenceGroup.findPreference(CameraSettings.KEY_ADVANCED_FEATURES);
      String advancedFeatures = (pref != null) ? pref.getValue() : null;
 
