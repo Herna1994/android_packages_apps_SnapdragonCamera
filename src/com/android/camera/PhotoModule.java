@@ -1463,6 +1463,14 @@ public class PhotoModule
                                    null, null, null, colorEffect,
                                    sceneMode, redeyeReduction, aeBracketing);
         }
+        /* Disable focus if aebracket is ON */
+        String aeBracket = mParameters.get(CameraSettings.KEY_QC_AE_BRACKETING);
+        if (!aeBracket.equalsIgnoreCase("off")) {
+            String fMode = Parameters.FLASH_MODE_OFF;
+            mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, fMode);
+            mParameters.setFlashMode(fMode);
+        }
+
     }
 
     private void overrideCameraSettings(final String flashMode,
@@ -2337,6 +2345,16 @@ public class PhotoModule
         String pictureFormat = mPreferences.getString(
                 CameraSettings.KEY_PICTURE_FORMAT,
                 mActivity.getString(R.string.pref_camera_picture_format_default));
+
+        //Change picture format to JPEG if camera is start from other APK by intent.
+        if (mIsImageCaptureIntent && !pictureFormat.equals(PIXEL_FORMAT_JPEG)) {
+            pictureFormat = PIXEL_FORMAT_JPEG;
+            Editor editor = mPreferences.edit();
+            editor.putString(CameraSettings.KEY_PICTURE_FORMAT,
+                mActivity.getString(R.string.pref_camera_picture_format_value_jpeg));
+            editor.apply();
+        }
+        Log.v(TAG, "Picture format value =" + pictureFormat);
         mParameters.set(KEY_PICTURE_FORMAT, pictureFormat);
 
         // Set JPEG quality.
@@ -2633,6 +2651,13 @@ public class PhotoModule
         }
         if(CameraUtil.isSupported(picture_flip, CameraSettings.getSupportedFlipMode(mParameters))){
             mParameters.set(CameraSettings.KEY_QC_SNAPSHOT_PICTURE_FLIP, picture_flip);
+        }
+        /* Disable focus if aebracket is ON */
+        String aeBracket = mParameters.get(CameraSettings.KEY_QC_AE_BRACKETING);
+        if (!aeBracket.equalsIgnoreCase("off")) {
+            String fMode = Parameters.FLASH_MODE_OFF;
+            mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, fMode);
+            mParameters.setFlashMode(fMode);
         }
     }
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
