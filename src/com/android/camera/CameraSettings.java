@@ -92,6 +92,7 @@ public class CameraSettings {
     public static final String KEY_LENSSHADING = "pref_camera_lensshading_key";
     public static final String KEY_HISTOGRAM = "pref_camera_histogram_key";
     public static final String KEY_DENOISE = "pref_camera_denoise_key";
+    public static final String KEY_BRIGHTNESS = "pref_camera_brightness_key";
     public static final String KEY_REDEYE_REDUCTION = "pref_camera_redeyereduction_key";
     public static final String KEY_AE_BRACKET_HDR = "pref_camera_ae_bracket_hdr_key";
     public static final String KEY_ADVANCED_FEATURES = "pref_camera_advanced_features_key";
