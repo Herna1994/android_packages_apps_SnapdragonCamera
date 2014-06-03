@@ -1432,13 +1432,13 @@ public class PhotoModule
                     colorEffect,
                     sceneMode, redeyeReduction, aeBracketing);
         } else if (mFocusManager.isZslEnabled()) {
-            focusMode = mParameters.getFocusMode();
+            focusMode = mFocusManager.getFocusMode();
             overrideCameraSettings(flashMode, null, focusMode,
                                    exposureCompensation, touchAfAec, null,
                                    null, null, null, colorEffect,
                                    sceneMode, redeyeReduction, aeBracketing);
         } else {
-            overrideCameraSettings(flashMode, null, focusMode,
+            overrideCameraSettings(flashMode, null, mParameters.getFocusMode(),
                                    exposureCompensation, touchAfAec, null,
                                    null, null, null, colorEffect,
                                    sceneMode, redeyeReduction, aeBracketing);
@@ -2733,6 +2733,7 @@ public class PhotoModule
             }
 
             // Set focus mode.
+
             mFocusManager.overrideFocusMode(null);
             mParameters.setFocusMode(mFocusManager.getFocusMode());
         } else {
