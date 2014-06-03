@@ -1452,6 +1452,10 @@ public class PhotoModule
                     Integer.toString(mParameters.getSharpness()),
                     colorEffect,
                     sceneMode, redeyeReduction, aeBracketing);
+            if (CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
+                mUI.overrideSettings(CameraSettings.KEY_LONGSHOT,
+                        mActivity.getString(R.string.setting_off_value));
+            }
         } else if (mFocusManager.isZslEnabled()) {
             focusMode = mParameters.getFocusMode();
             overrideCameraSettings(flashMode, null, focusMode,
@@ -1471,7 +1475,9 @@ public class PhotoModule
             mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, fMode);
             mParameters.setFlashMode(fMode);
         }
-
+        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
+            mUI.overrideSettings(CameraSettings.KEY_LONGSHOT, null);
+        }
     }
 
     private void overrideCameraSettings(final String flashMode,
@@ -1756,8 +1762,8 @@ public class PhotoModule
         }
         if (seconds > 0) {
             String zsl = mPreferences.getString(CameraSettings.KEY_ZSL,
-                                  mActivity.getString(R.string.pref_camera_zsl_default));
-            mUI.overrideSettings(CameraSettings.KEY_ZSL,zsl);
+                    mActivity.getString(R.string.pref_camera_zsl_default));
+            mUI.overrideSettings(CameraSettings.KEY_ZSL, zsl);
             mUI.startCountDown(seconds, playSound);
         } else {
             mSnapshotOnIdle = false;
@@ -3065,6 +3071,7 @@ public class PhotoModule
         mSnapshotOnIdle = false;
         mFocusManager.doSnap();
         mFocusManager.onShutterUp();
+        mUI.overrideSettings(CameraSettings.KEY_ZSL, null);
     }
 
     @Override
