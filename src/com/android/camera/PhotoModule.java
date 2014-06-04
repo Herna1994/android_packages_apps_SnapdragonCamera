@@ -1471,16 +1471,21 @@ public class PhotoModule
             pref_camera_advanced_feature_value_chromaflash_on);
         String optiZoomOn = mActivity.getString(R.string.
             pref_camera_advanced_feature_value_optizoom_on);
+        String fssrOn = mActivity.getString(R.string.
+            pref_camera_advanced_feature_value_FSSR_on);
         String optiZoom =
             mParameters.get(CameraSettings.KEY_QC_OPTI_ZOOM);
         String chromaFlash =
             mParameters.get(CameraSettings.KEY_QC_CHROMA_FLASH);
         String ubiFocus =
             mParameters.get(CameraSettings.KEY_QC_AF_BRACKETING);
+        String fssr =
+            mParameters.get(CameraSettings.KEY_QC_FSSR);
 
         if ((ubiFocus != null && ubiFocus.equals(ubiFocusOn)) ||
                 (chromaFlash != null && chromaFlash.equals(chromaFlashOn)) ||
-                (optiZoom != null && optiZoom.equals(optiZoomOn))) {
+                (optiZoom != null && optiZoom.equals(optiZoomOn)) ||
+                (fssr != null && fssr.equals(fssrOn))) {
             mSceneMode = sceneMode = Parameters.SCENE_MODE_AUTO;
             flashMode = Parameters.FLASH_MODE_OFF;
             focusMode = Parameters.FOCUS_MODE_INFINITY;
@@ -2377,7 +2382,8 @@ public class PhotoModule
 
     private void qcomUpdateAdvancedFeatures(String ubiFocus,
                                             String chromaFlash,
-                                            String optiZoom) {
+                                            String optiZoom,
+                                            String fssr) {
         if (CameraUtil.isSupported(ubiFocus,
               CameraSettings.getSupportedAFBracketingModes(mParameters))) {
             mParameters.set(CameraSettings.KEY_QC_AF_BRACKETING, ubiFocus);
@@ -2389,6 +2395,10 @@ public class PhotoModule
         if (CameraUtil.isSupported(optiZoom,
               CameraSettings.getSupportedOptiZoomModes(mParameters))) {
             mParameters.set(CameraSettings.KEY_QC_OPTI_ZOOM, optiZoom);
+        }
+        if (CameraUtil.isSupported(fssr,
+              CameraSettings.getSupportedFSSRModes(mParameters))) {
+            mParameters.set(CameraSettings.KEY_QC_FSSR, fssr);
         }
     }
     private void qcomUpdateCameraParametersPreference() {
@@ -2547,26 +2557,38 @@ public class PhotoModule
                  pref_camera_advanced_feature_value_chromaflash_off);
              String optiZoomOff = mActivity.getString(R.string.
                  pref_camera_advanced_feature_value_optizoom_off);
+             String fssrOff = mActivity.getString(R.string.
+                 pref_camera_advanced_feature_value_FSSR_off);
 
              if (advancedFeature.equals(mActivity.getString(R.string.
                  pref_camera_advanced_feature_value_ubifocus_on))) {
                  qcomUpdateAdvancedFeatures(advancedFeature,
                                            chromaFlashOff,
-                                           optiZoomOff);
+                                           optiZoomOff,
+                                           fssrOff);
             } else if (advancedFeature.equals(mActivity.getString(R.string.
                  pref_camera_advanced_feature_value_chromaflash_on))) {
                  qcomUpdateAdvancedFeatures(ubiFocusOff,
                                            advancedFeature,
-                                           optiZoomOff);
+                                           optiZoomOff,
+                                           fssrOff);
             } else if (advancedFeature.equals(mActivity.getString(R.string.
                 pref_camera_advanced_feature_value_optizoom_on))) {
                 qcomUpdateAdvancedFeatures(ubiFocusOff,
                                            chromaFlashOff,
+                                           advancedFeature,
+                                           fssrOff);
+            } else if (advancedFeature.equals(mActivity.getString(R.string.
+                pref_camera_advanced_feature_value_FSSR_on))) {
+                qcomUpdateAdvancedFeatures(ubiFocusOff,
+                                           chromaFlashOff,
+                                           optiZoomOff,
                                            advancedFeature);
             } else {
                 qcomUpdateAdvancedFeatures(ubiFocusOff,
                                            chromaFlashOff,
-                                           optiZoomOff);
+                                           optiZoomOff,
+                                           fssrOff);
             }
         }
         // Set auto exposure parameter.
