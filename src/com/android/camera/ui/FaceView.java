@@ -68,6 +68,7 @@ public class FaceView extends View
 
     private final int smile_threashold_no_smile = 30;
     private final int smile_threashold_small_smile = 60;
+    private final int smile_rotate_threshold = 30;
     private final int blink_threshold = 60;
 
     private static final int MSG_SWITCH_FACES = 1;
@@ -195,6 +196,7 @@ public class FaceView extends View
     protected void onDraw(Canvas canvas) {
         if (!mBlocked && (mFaces != null) && (mFaces.length > 0)) {
             int rw, rh;
+            boolean rotate_smile = false;
             rw = mUncroppedWidth;
             rh = mUncroppedHeight;
             // Prepare the matrix.
@@ -256,6 +258,13 @@ public class FaceView extends View
                         }
                     }
 
+                    if(face.leftEye != null && face.rightEye != null) {
+                        if((Math.abs((face.leftEye.x - face.rightEye.x)) >
+                            smile_rotate_threshold)) {
+                            rotate_smile = true;
+                        }
+                    }
+
                     if (face.getLeftRightGazeDegree() != 0
                         || face.getTopBottomGazeDegree() != 0 ) {
 
@@ -310,18 +319,18 @@ public class FaceView extends View
                         Log.e(TAG, "smile: " + face.getSmileDegree() + "," +
                             face.getSmileScore());
                         if (face.getSmileDegree() < smile_threashold_no_smile) {
-
-                            if ((mDisplayOrientation == 90) ||
+                            if((mDisplayOrientation == 0) ||
+                                (mDisplayOrientation == 180) || rotate_smile) {
+                                point[0] = face.mouth.x - delta_x;
+                                point[1] = face.mouth.y;
+                                point[2] = face.mouth.x + delta_x ;
+                                point[3] = face.mouth.y;
+                            } else if ((mDisplayOrientation == 90) ||
                                 (mDisplayOrientation == 270)) {
                                 point[0] = face.mouth.x;
                                 point[1] = face.mouth.y - delta_y;
                                 point[2] = face.mouth.x;
                                 point[3] = face.mouth.y + delta_y;
-                            } else {
-                                point[0] = face.mouth.x - delta_x;
-                                point[1] = face.mouth.y;
-                                point[2] = face.mouth.x + delta_x ;
-                                point[3] = face.mouth.y;
                             }
                             mMatrix.mapPoints (point);
                             canvas.drawLine(point[0] + dx, point[1] + dy,
