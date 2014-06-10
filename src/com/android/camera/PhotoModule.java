@@ -1760,12 +1760,6 @@ public class PhotoModule
             Log.v(TAG, "On resume.");
             onResumeTasks();
         }
-        mHandler.post(new Runnable(){
-            @Override
-            public void run(){
-                mActivity.updateStorageSpaceAndHint();
-            }
-        });
     }
 
     private void onResumeTasks() {
@@ -2584,6 +2578,10 @@ public class PhotoModule
         setAutoWhiteBalanceLockIfSupported();
         setFocusAreasIfSupported();
         setMeteringAreasIfSupported();
+
+        // initialize focus mode
+        mFocusManager.overrideFocusMode(null);
+        mParameters.setFocusMode(mFocusManager.getFocusMode());
 
         // Set picture size.
         String pictureSize = mPreferences.getString(
