@@ -742,6 +742,13 @@ public class VideoModule implements CameraModule,
 
             mParameters.setPowerMode(powermode);
         }
+
+        // Set wavelet denoise mode
+        if (mParameters.getSupportedDenoiseModes() != null) {
+            String denoise = mPreferences.getString(CameraSettings.KEY_DENOISE,
+                    mActivity.getString(R.string.pref_camera_denoise_default));
+            mParameters.setDenoise(denoise);
+        }
    }
 
     private void readVideoPreferences() {
@@ -1000,6 +1007,7 @@ public class VideoModule implements CameraModule,
         mCameraDevice.stopPreview();
         mPreviewing = false;
         mStopPrevPending = false;
+        mUI.enableShutter(false);
     }
 
     private void closeCamera() {
@@ -2154,6 +2162,11 @@ public class VideoModule implements CameraModule,
     @Override
     // TODO: Delete this after old camera code is removed
     public void onRestorePreferencesClicked() {
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(ListPreference pref) {
+        onSharedPreferenceChanged();
     }
 
     @Override

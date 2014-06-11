@@ -112,7 +112,7 @@ public class PhotoModule
     private int mBurstSnapNum = 1;
     private int mReceivedSnapNum = 0;
     public boolean mFaceDetectionEnabled = false;
-
+    private DrawAutoHDR mDrawAutoHDR;
    /*Histogram variables*/
     private GraphView mGraphView;
     private static final int STATS_DATA = 257;
@@ -158,6 +158,7 @@ public class PhotoModule
 
     private PhotoUI mUI;
 
+    public boolean mAutoHdrEnable;
     // The activity is going to switch to the specified camera id. This is
     // needed because texture copy is done in GL thread. -1 means camera is not
     // switching.
@@ -278,7 +279,7 @@ public class PhotoModule
 
     private final CameraErrorCallback mErrorCallback = new CameraErrorCallback();
     private final StatsCallback mStatsCallback = new StatsCallback();
-
+    private final MetaDataCallback mMetaDataCallback = new MetaDataCallback();
     private long mFocusStartTime;
     private long mShutterCallbackTime;
     private long mPostViewPictureCallbackTime;
@@ -512,6 +513,7 @@ public class PhotoModule
         setCameraState(IDLE);
         startFaceDetection();
         locationFirstRun();
+        mUI.enableShutter(true);
     }
 
     // Prompt the user to pick to record location for the very first run of
@@ -711,11 +713,13 @@ public class PhotoModule
         }
 
         mNamedImages = new NamedImages();
-         mGraphView = (GraphView)mRootView.findViewById(R.id.graph_view);
-        if(mGraphView == null){
-            Log.e(TAG, "mGraphView is null");
+        mGraphView = (GraphView)mRootView.findViewById(R.id.graph_view);
+        mDrawAutoHDR = (DrawAutoHDR )mRootView.findViewById(R.id.autohdr_view);
+        if (mGraphView == null || mDrawAutoHDR == null){
+            Log.e(TAG, "mGraphView or mDrawAutoHDR is null");
         } else{
             mGraphView.setPhotoModuleObject(this);
+            mDrawAutoHDR.setPhotoModuleObject(this);
         }
 
         mFirstTimeInitialized = true;
@@ -873,6 +877,47 @@ public class PhotoModule
            });
         }
     }
+
+    private final class MetaDataCallback
+           implements android.hardware.Camera.CameraMetaDataCallback{
+        @Override
+        public void onCameraMetaData (byte[] data, android.hardware.Camera camera) {
+            int metadata[] = new int[3];
+            if (data.length <= 12) {
+                for (int i =0;i<3;i++) {
+                    metadata[i] = byteToInt( (byte []) data, i*4);
+                }
+                if (metadata[2] == 1) {
+                    mAutoHdrEnable = true;
+                    mActivity.runOnUiThread(new Runnable() {
+                        public void run() {
+                            if (mDrawAutoHDR != null)
+                                mDrawAutoHDR.AutoHDR();
+                        }
+                    });
+                }
+                else {
+                    mAutoHdrEnable = false;
+                    mActivity.runOnUiThread(new Runnable() {
+                        public void run() {
+                            if (mDrawAutoHDR != null)
+                                mDrawAutoHDR.AutoHDR();
+                        }
+                    });
+                }
+            }
+        }
+
+        private int byteToInt (byte[] b, int offset) {
+            int value = 0;
+            for (int i = 0; i < 4; i++) {
+                int shift = (4 - 1 - i) * 8;
+                value += (b[(3-i) + offset] & 0x000000FF) << shift;
+            }
+            return value;
+        }
+    }
+
     private final class PostViewPictureCallback
             implements CameraPictureCallback {
         @Override
@@ -1397,6 +1442,8 @@ public class PhotoModule
 
         String ubiFocusOn = mActivity.getString(R.string.
             pref_camera_advanced_feature_value_ubifocus_on);
+        String continuousShotOn =
+                mActivity.getString(R.string.setting_on_value);
         String chromaFlashOn = mActivity.getString(R.string.
             pref_camera_advanced_feature_value_chromaflash_on);
         String optiZoomOn = mActivity.getString(R.string.
@@ -1407,7 +1454,16 @@ public class PhotoModule
             mParameters.get(CameraSettings.KEY_QC_CHROMA_FLASH);
         String ubiFocus =
             mParameters.get(CameraSettings.KEY_QC_AF_BRACKETING);
+        String continuousShot =
+                mParameters.get("long-shot");
 
+        if ((continuousShot != null) && continuousShot.equals(continuousShotOn)) {
+            String pictureFormat = mActivity.getString(R.string.
+                    pref_camera_picture_format_value_jpeg);
+            mUI.overrideSettings(CameraSettings.KEY_PICTURE_FORMAT, pictureFormat);
+        } else {
+            mUI.overrideSettings(CameraSettings.KEY_PICTURE_FORMAT, null);
+        }
         if ((ubiFocus != null && ubiFocus.equals(ubiFocusOn)) ||
                 (chromaFlash != null && chromaFlash.equals(chromaFlashOn)) ||
                 (optiZoom != null && optiZoom.equals(optiZoomOn))) {
@@ -1451,6 +1507,10 @@ public class PhotoModule
                     Integer.toString(mParameters.getSharpness()),
                     colorEffect,
                     sceneMode, redeyeReduction, aeBracketing);
+            if (CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
+                mUI.overrideSettings(CameraSettings.KEY_LONGSHOT,
+                        mActivity.getString(R.string.setting_off_value));
+            }
         } else if (mFocusManager.isZslEnabled()) {
             focusMode = mParameters.getFocusMode();
             overrideCameraSettings(flashMode, null, focusMode,
@@ -1469,6 +1529,9 @@ public class PhotoModule
             String fMode = Parameters.FLASH_MODE_OFF;
             mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, fMode);
             mParameters.setFlashMode(fMode);
+        }
+        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
+            mUI.overrideSettings(CameraSettings.KEY_LONGSHOT, null);
         }
     }
 
@@ -1753,6 +1816,9 @@ public class PhotoModule
             mUI.cancelCountDown();
         }
         if (seconds > 0) {
+            String zsl = mPreferences.getString(CameraSettings.KEY_ZSL,
+                    mActivity.getString(R.string.pref_camera_zsl_default));
+            mUI.overrideSettings(CameraSettings.KEY_ZSL, zsl);
             mUI.startCountDown(seconds, playSound);
         } else {
             mSnapshotOnIdle = false;
@@ -1762,6 +1828,13 @@ public class PhotoModule
 
     @Override
     public void onShutterButtonLongClick() {
+        // Do not take the picture if there is not enough storage.
+        if (mActivity.getStorageSpaceBytes() <= Storage.LOW_STORAGE_THRESHOLD_BYTES) {
+            Log.i(TAG, "Not enough space or storage not ready. remaining="
+                    + mActivity.getStorageSpaceBytes());
+            return;
+        }
+
         if ((null != mCameraDevice) && ((mCameraState == IDLE) || (mCameraState == FOCUSING))) {
             //Add on/off Menu for longshot
             String longshot_enable = mPreferences.getString(
@@ -2510,6 +2583,32 @@ public class PhotoModule
 
         String zsl = mPreferences.getString(CameraSettings.KEY_ZSL,
                                   mActivity.getString(R.string.pref_camera_zsl_default));
+        String auto_hdr = mPreferences.getString(CameraSettings.KEY_AUTO_HDR,
+                                       mActivity.getString(R.string.pref_camera_hdr_default));
+        if (CameraUtil.isAutoHDRSupported(mParameters)) {
+            mParameters.setAutoHDRMode(auto_hdr);
+            if (auto_hdr.equals("enable")) {
+                mActivity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        if (mDrawAutoHDR != null) {
+                            mDrawAutoHDR.setVisibility(View.VISIBLE);
+                        }
+                    }
+                });
+                mParameters.setSceneMode("asd");
+                mCameraDevice.setMetadataCb(mMetaDataCallback);
+            }
+            else {
+                mAutoHdrEnable = false;
+                mActivity.runOnUiThread( new Runnable() {
+                    public void run () {
+                        if (mDrawAutoHDR != null) {
+                            mDrawAutoHDR.setVisibility (View.INVISIBLE);
+                        }
+                    }
+                });
+            }
+        }
         mParameters.setZSLMode(zsl);
         if(zsl.equals("on")) {
             //Switch on ZSL Camera mode
@@ -2935,6 +3034,30 @@ public class PhotoModule
         }
     }
 
+    // Return true if the preference has the specified key but not the value.
+    private static boolean notSame(ListPreference pref, String key, String value) {
+        return (key.equals(pref.getKey()) && !value.equals(pref.getValue()));
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(ListPreference pref) {
+        // ignore the events after "onPause()"
+        if (mPaused) return;
+
+        //filter off unsupported settings
+        final String settingOff = mActivity.getString(R.string.setting_off_value);
+        if (!CameraSettings.isZSLHDRSupported(mParameters)) {
+            if (notSame(pref, CameraSettings.KEY_CAMERA_HDR, settingOff)) {
+                mUI.setPreference(CameraSettings.KEY_ZSL,settingOff);
+            } else if (notSame(pref,CameraSettings.KEY_ZSL,settingOff)) {
+                mUI.setPreference(CameraSettings.KEY_CAMERA_HDR, settingOff);
+            }
+        }
+
+        //call generic onSharedPreferenceChanged
+        onSharedPreferenceChanged();
+    }
+
     @Override
     public void onSharedPreferenceChanged() {
         // ignore the events after "onPause()"
@@ -3053,6 +3176,7 @@ public class PhotoModule
         mSnapshotOnIdle = false;
         mFocusManager.doSnap();
         mFocusManager.onShutterUp();
+        mUI.overrideSettings(CameraSettings.KEY_ZSL, null);
     }
 
     @Override
@@ -3367,4 +3491,45 @@ class GraphView extends View {
     public void setPhotoModuleObject(PhotoModule photoModule) {
         mPhotoModule = photoModule;
     }
+}
+
+class DrawAutoHDR extends View{
+
+    private static final String TAG = "AutoHdrView";
+    private PhotoModule mPhotoModule;
+
+    public DrawAutoHDR (Context context, AttributeSet attrs) {
+        super(context,attrs);
+    }
+
+    @Override
+    protected void onDraw (Canvas canvas) {
+        if (mPhotoModule == null)
+            return;
+        if (mPhotoModule.mAutoHdrEnable) {
+            Paint AutoHDRPaint = new Paint();
+            AutoHDRPaint.setColor(Color.WHITE);
+            AutoHDRPaint.setAlpha (0);
+            canvas.drawPaint(AutoHDRPaint);
+            AutoHDRPaint.setStyle(Paint.Style.STROKE);
+            AutoHDRPaint.setColor(Color.MAGENTA);
+            AutoHDRPaint.setStrokeWidth(1);
+            AutoHDRPaint.setTextSize(16);
+            AutoHDRPaint.setAlpha (255);
+            canvas.drawText("HDR On",200,100,AutoHDRPaint);
+        }
+        else {
+            super.onDraw(canvas);
+            return;
+        }
+    }
+
+    public void AutoHDR () {
+        invalidate();
+    }
+
+    public void setPhotoModuleObject (PhotoModule photoModule) {
+        mPhotoModule = photoModule;
+    }
+
 }
