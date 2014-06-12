@@ -1066,7 +1066,9 @@ public class PhotoModule
                     mCameraDevice.cancelAutoFocus();
                 }
                 mUI.resumeFaceDetection();
-                setCameraState(IDLE);
+                if (!mIsImageCaptureIntent) {
+                    setCameraState(IDLE);
+                }
             }
 
             ExifInterface exif = Exif.getExif(jpegData);
@@ -1181,7 +1183,8 @@ public class PhotoModule
             }
             if (mSnapshotMode == CameraInfo.CAMERA_SUPPORT_MODE_ZSL &&
                 mCameraState != LONGSHOT &&
-                mReceivedSnapNum == mBurstSnapNum) {
+                mReceivedSnapNum == mBurstSnapNum &&
+                !mIsImageCaptureIntent) {
                 cancelAutoFocus();
             }
         }
