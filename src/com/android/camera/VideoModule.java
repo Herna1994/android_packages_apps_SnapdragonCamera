@@ -676,8 +676,10 @@ public class VideoModule implements CameraModule,
 
         if (stop) {
             onStopVideoRecording();
+            mUI.showUIafterRecording();
         } else {
             startVideoRecording();
+            mUI.hideUIwhileRecording();
         }
         mUI.enableShutter(false);
 
@@ -1094,10 +1096,10 @@ public class VideoModule implements CameraModule,
         if (mMediaRecorderRecording) {
             onStopVideoRecording();
             return true;
-        } else if (mUI.hidePieRenderer()) {
+        } else if (mUI.hideSwitcherPopup()) {
             return true;
         } else {
-            return mUI.removeTopLevelPopup();
+            return mUI.onBackPressed();
         }
     }
 

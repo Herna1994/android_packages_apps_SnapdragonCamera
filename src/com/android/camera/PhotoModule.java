@@ -499,13 +499,6 @@ public class PhotoModule
         mLocationManager = new LocationManager(mActivity, mUI);
         mSensorManager = (SensorManager)(mActivity.getSystemService(Context.SENSOR_SERVICE));
 
-        brightnessProgressBar = (ProgressBar)mRootView.findViewById(R.id.progress);
-        if (brightnessProgressBar instanceof SeekBar) {
-            SeekBar seeker = (SeekBar) brightnessProgressBar;
-            seeker.setOnSeekBarChangeListener(mSeekListener);
-        }
-        brightnessProgressBar.setMax(MAXIMUM_BRIGHTNESS);
-        brightnessProgressBar.setProgress(mbrightness);
         skinToneSeekBar = (SeekBar) mRootView.findViewById(R.id.skintoneseek);
         skinToneSeekBar.setOnSeekBarChangeListener(mskinToneSeekListener);
         skinToneSeekBar.setVisibility(View.INVISIBLE);
@@ -871,6 +864,8 @@ public class PhotoModule
                 if(isLongshotNeedCancel()) {
                     return;
                 }
+
+                mUI.doShutterAnimation();
 
                 if (mLongshotSave) {
                     mCameraDevice.takePicture(mHandler,
@@ -1707,6 +1702,7 @@ public class PhotoModule
         // need to re-initialize mGraphView to show histogram on rotate
         mGraphView = (GraphView)mRootView.findViewById(R.id.graph_view);
         if(mGraphView != null){
+            mGraphView.setAlpha(0.75f);
             mGraphView.setPhotoModuleObject(this);
             mGraphView.PreviewChanged();
         }
@@ -2249,9 +2245,11 @@ public class PhotoModule
                         mCameraDevice.setParameters(mParameters);
                     }
                 }
-                brightnessProgressBar.setProgress(mbrightness);
-                brightnessProgressBar.setVisibility(View.VISIBLE);
-                mBrightnessVisible = true;
+                if (brightnessProgressBar != null) {
+                    brightnessProgressBar.setProgress(mbrightness);
+                    brightnessProgressBar.setVisibility(View.VISIBLE);
+                    mBrightnessVisible = true;
+                }
             }
             break;
            case KeyEvent.KEYCODE_DPAD_RIGHT:
@@ -2267,9 +2265,12 @@ public class PhotoModule
                         mCameraDevice.setParameters(mParameters);
                     }
                 }
-                brightnessProgressBar.setProgress(mbrightness);
-                brightnessProgressBar.setVisibility(View.VISIBLE);
-                mBrightnessVisible = true;
+
+                if (brightnessProgressBar != null) {
+                    brightnessProgressBar.setProgress(mbrightness);
+                    brightnessProgressBar.setVisibility(View.VISIBLE);
+                    mBrightnessVisible = true;
+                }
             }
             break;
             case KeyEvent.KEYCODE_DPAD_CENTER:
@@ -3445,6 +3446,7 @@ public class PhotoModule
         }
         skinToneSeekBar.setProgress(progress);
         mActivity.findViewById(R.id.linear).bringToFront();
+        mActivity.findViewById(R.id.progress).setVisibility(View.GONE);
         skinToneSeekBar.bringToFront();
         Title.setText("Skin Tone Enhancement");
         Title.setVisibility(View.VISIBLE);

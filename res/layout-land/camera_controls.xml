@@ -29,13 +29,14 @@
         <include layout="@layout/menu_indicators"
             android:layout_width="64dip"
             android:layout_height="64dip"
-            android:layout_marginTop="-5dip"
-            android:layout_marginRight="6dip"
+            android:layout_marginTop="-8dip"
+            android:layout_marginRight="8dip"
             android:layout_gravity="top|right"/>
 
-        <com.android.camera.ui.PieMenuButton
+        <ImageView
             android:id="@+id/menu"
-            style="@style/SwitcherButton"
+            style="@style/MenuButton"
+            android:src="@drawable/ic_settings"
             android:contentDescription="@string/accessibility_menu_button"
             android:layout_gravity="right|top"
             android:layout_marginRight="2dip" />
@@ -67,5 +68,20 @@
             android:scaleType="centerInside"
             android:layout_gravity="top|right"
             android:contentDescription="@string/switch_photo_filmstrip" />
+
+        <com.android.camera.ui.RotateImageView
+            android:id="@+id/front_back_switcher"
+            style="@style/ToggleButton"
+            android:layout_gravity="right|bottom" />
+
+        <com.android.camera.ui.RotateImageView
+            android:id="@+id/flash_switcher"
+            style="@style/ToggleButton"
+            android:layout_gravity="right|bottom" />
+
+        <com.android.camera.ui.RotateImageView
+            android:id="@+id/hdr_switcher"
+            style="@style/ToggleButton"
+            android:layout_gravity="right|bottom" />
 
 </com.android.camera.ui.CameraControls>

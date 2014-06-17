@@ -16,6 +16,8 @@
 
 package com.android.camera;
 
+import java.util.List;
+
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -35,9 +37,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
+import android.view.ViewPropertyAnimator;
 import android.widget.FrameLayout.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
@@ -49,12 +53,9 @@ import com.android.camera.ui.ModuleSwitcher;
 import com.android.camera.ui.PieRenderer;
 import com.android.camera.ui.RenderOverlay;
 import com.android.camera.ui.RotateLayout;
-import com.android.camera.PauseButton.OnPauseButtonListener;
 import com.android.camera.ui.ZoomRenderer;
 import com.android.camera.util.CameraUtil;
 import com.android.camera2.R;
-
-import java.util.List;
 
 public class VideoUI implements PieRenderer.PieListener,
         PreviewGestures.SingleTapListener,
@@ -99,6 +100,9 @@ public class VideoUI implements PieRenderer.PieListener,
     private boolean mOrientationResize;
     private boolean mPrevOrientationResize;
     private boolean mIsTimeLapse = false;
+    private LinearLayout listviewlayout;
+    private LinearLayout listviewlayout2;
+    private CustomVideoMenu mCustomVideoMenu;
 
     private View mPreviewCover;
     private SurfaceView mSurfaceView = null;
@@ -110,6 +114,7 @@ public class VideoUI implements PieRenderer.PieListener,
     private boolean mAspectRatioResize;
     private Matrix mMatrix = null;
     private final AnimationManager mAnimationManager;
+    private boolean mUIhidden = false;
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -143,6 +148,7 @@ public class VideoUI implements PieRenderer.PieListener,
                 onScreenSizeChanged(width, height, w, h);
                 mAspectRatioResize = false;
             }
+            mCustomVideoMenu.tryToCloseSubList();
         }
     };
 
@@ -218,9 +224,7 @@ public class VideoUI implements PieRenderer.PieListener,
         mMenuButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mPieRenderer != null) {
-                    mPieRenderer.showInCenter();
-                }
+                mCustomVideoMenu.openFirstLevel();
             }
         });
 
@@ -382,16 +386,22 @@ public class VideoUI implements PieRenderer.PieListener,
     }
 
     public void hideUI() {
-        mCameraControls.setVisibility(View.INVISIBLE);
         mSwitcher.closePopup();
+        if (mUIhidden)
+            return;
+        mUIhidden = true;
+        mCameraControls.hideUI();
     }
 
     public void showUI() {
-        mCameraControls.setVisibility(View.VISIBLE);
+        if (!mUIhidden || (mCustomVideoMenu != null && mCustomVideoMenu.isMenuBeingShown()))
+            return;
+        mUIhidden = false;
+        mCameraControls.showUI();
     }
 
     public boolean arePreviewControlsVisible() {
-        return (mCameraControls.getVisibility() == View.VISIBLE);
+        return !mUIhidden;
     }
 
     public void hideSwitcher() {
@@ -477,6 +487,9 @@ public class VideoUI implements PieRenderer.PieListener,
             mVideoMenu = new VideoMenu(mActivity, this, mPieRenderer);
             mPieRenderer.setPieListener(this);
         }
+        if (mCustomVideoMenu == null) {
+            mCustomVideoMenu = new CustomVideoMenu(mActivity, this);
+        }
         mRenderOverlay.addRenderer(mPieRenderer);
         if (mZoomRenderer == null) {
             mZoomRenderer = new ZoomRenderer(mActivity);
@@ -486,6 +499,8 @@ public class VideoUI implements PieRenderer.PieListener,
             mGestures = new PreviewGestures(mActivity, this, mZoomRenderer, mPieRenderer);
             mRenderOverlay.setGestures(mGestures);
         }
+        mGestures.setCustomVideoMenu(mCustomVideoMenu);
+
         mGestures.setRenderOverlay(mRenderOverlay);
 
         mPreviewThumb = mRootView.findViewById(R.id.preview_thumb);
@@ -498,10 +513,13 @@ public class VideoUI implements PieRenderer.PieListener,
                 }
             }
         });
+
+        mActivity.setPreviewGestures(mGestures);
     }
 
     public void setPrefChangedListener(OnPreferenceChangedListener listener) {
         mVideoMenu.setListener(listener);
+        mCustomVideoMenu.setListener(listener);
     }
 
     private void initializeMiscControls() {
@@ -572,6 +590,79 @@ public class VideoUI implements PieRenderer.PieListener,
         mPopup = null;
     }
 
+    public boolean onBackPressed() {
+        if (mCustomVideoMenu != null && mCustomVideoMenu.handleBackKey()) {
+            return true;
+        }
+        if (hidePieRenderer()) {
+            return true;
+        } else {
+            return removeTopLevelPopup();
+        }
+    }
+
+    public void cleanupListview() {
+        showUI();
+        mActivity.setSystemBarsVisibility(false);
+    }
+
+    public void dismissLevel1() {
+        if (listviewlayout != null) {
+            ((ViewGroup) mRootView).removeView(listviewlayout);
+            listviewlayout = null;
+        }
+    }
+
+    public void dismissLevel2() {
+        if (listviewlayout2 != null) {
+            ((ViewGroup) mRootView).removeView(listviewlayout2);
+            listviewlayout2 = null;
+        }
+    }
+
+    public void removeLevel2() {
+        if (listviewlayout2 != null) {
+            View v = listviewlayout2.getChildAt(0);
+            listviewlayout2.removeView(v);
+        }
+    }
+
+    public void showPopup(ListView popup, int level, boolean animate) {
+        hideUI();
+
+        popup.setVisibility(View.VISIBLE);
+        if (level == 1) {
+            if (listviewlayout == null) {
+                listviewlayout = new LinearLayout(mActivity);
+                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+                        CameraActivity.SETTING_LIST_WIDTH_1, LayoutParams.WRAP_CONTENT);
+                listviewlayout.setLayoutParams(params);
+                ((ViewGroup) mRootView).addView(listviewlayout);
+            }
+            listviewlayout.addView(popup);
+        }
+        if (level == 2) {
+            if (listviewlayout2 == null) {
+                listviewlayout2 = new LinearLayout(mActivity);
+                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+                        CameraActivity.SETTING_LIST_WIDTH_2, LayoutParams.WRAP_CONTENT);
+                listviewlayout2.setLayoutParams(params);
+
+                ((ViewGroup) mRootView).addView(listviewlayout2);
+            }
+            listviewlayout2.addView(popup);
+            listviewlayout2.setX(CameraActivity.SETTING_LIST_WIDTH_1);
+        }
+        if (animate) {
+            if (level == 1)
+                mCustomVideoMenu.animateSlideIn(popup);
+            if (level == 2)
+                mCustomVideoMenu.animateFadeIn(popup);
+        }
+        else
+            popup.setAlpha(0.85f);
+    }
+
     public void showPopup(AbstractSettingPopup popup) {
         hideUI();
 
@@ -638,7 +729,7 @@ public class VideoUI implements PieRenderer.PieListener,
         mMenuButton.setVisibility(recording ? View.GONE : View.VISIBLE);
         mOnScreenIndicators.setVisibility(recording ? View.GONE : View.VISIBLE);
         if (recording) {
-            mShutterButton.setImageResource(R.drawable.btn_shutter_video_recording);
+            mShutterButton.setImageResource(R.drawable.shutter_button_video_stop);
             hideSwitcher();
             mRecordingTimeView.setText("");
             mRecordingTimeView.setVisibility(View.VISIBLE);
@@ -651,6 +742,14 @@ public class VideoUI implements PieRenderer.PieListener,
             mRecordingTimeView.setVisibility(View.GONE);
             mPauseButton.setVisibility(View.GONE);
         }
+    }
+
+    public void hideUIwhileRecording() {
+        mCustomVideoMenu.hideUI();
+    }
+
+    public void showUIafterRecording() {
+        mCustomVideoMenu.showUI();
     }
 
     public void showReviewImage(Bitmap bitmap) {
@@ -706,6 +805,7 @@ public class VideoUI implements PieRenderer.PieListener,
 
     public void initializePopup(PreferenceGroup pref) {
         mVideoMenu.initialize(pref);
+        mCustomVideoMenu.initialize(pref);
     }
 
     public void initializeZoom(Parameters param) {
@@ -827,6 +927,10 @@ public class VideoUI implements PieRenderer.PieListener,
         mController.stopPreview();
     }
 
+    public View getRootView() {
+        return mRootView;
+    }
+
      @Override
     public void onButtonPause() {
         mRecordingTimeView.setCompoundDrawablesWithIntrinsicBounds(
@@ -849,5 +953,13 @@ public class VideoUI implements PieRenderer.PieListener,
 
     public void setPreference(String key, String value) {
         mVideoMenu.setPreference(key, value);
+    }
+
+    public boolean hideSwitcherPopup() {
+        if (mSwitcher != null && mSwitcher.showsPopup()) {
+            mSwitcher.closePopup();
+            return true;
+        }
+        return false;
     }
 }

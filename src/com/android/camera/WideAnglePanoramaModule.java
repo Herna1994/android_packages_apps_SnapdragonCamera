@@ -1049,6 +1049,10 @@ public class WideAnglePanoramaModule
         // If panorama is generating low res or high res mosaic, ignore back
         // key. So the activity will not be destroyed.
         if (mThreadRunning) return true;
+
+        if (mUI.hideSwitcherPopup())
+            return true;
+
         return false;
     }
 
