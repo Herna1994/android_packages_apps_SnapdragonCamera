@@ -89,7 +89,6 @@ public class FocusOverlayManager {
     private Handler mHandler;
     Listener mListener;
     private boolean mPreviousMoving;
-    private boolean mFocusDefault;
     private boolean mZslEnabled = false;  //QCom Parameter to disable focus for ZSL
     private boolean mTouchAFRunning = false;
     private boolean mIsAFRunning = false;
@@ -536,19 +535,14 @@ public class FocusOverlayManager {
         // Initialize mMeteringArea.
         mMeteringArea = null;
 
-        if (mFocusAreaSupported) {
-            initializeFocusAreas(mPreviewRect.centerX(), mPreviewRect.centerY());
-        }
         // Reset metering area when no specific region is selected.
         if (mMeteringAreaSupported) {
             resetMeteringAreas();
         }
-        mFocusDefault = true;
         if (mTouchAFRunning && mZslEnabled) {
             mTouchAFRunning = false;
             mListener.setFocusParameters();
         }
-        mMeteringArea = null;
     }
 
     private void calculateTapArea(int x, int y, float areaMultiple, Rect rect) {
