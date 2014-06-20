@@ -1375,6 +1375,9 @@ public class PhotoModule
         String exposureCompensation = null;
         String touchAfAec = null;
 
+        String hdrOn = mActivity.getString(R.string.setting_on_value);
+        String hdr = mPreferences.getString(CameraSettings.KEY_CAMERA_HDR,
+                mActivity.getString(R.string.pref_camera_hdr_default));
         String ubiFocusOn = mActivity.getString(R.string.
             pref_camera_advanced_feature_value_ubifocus_on);
         String chromaFlashOn = mActivity.getString(R.string.
@@ -1405,12 +1408,29 @@ public class PhotoModule
             overrideCameraSettings(flashMode, null, focusMode,
                                    exposureCompensation, touchAfAec, null,
                                    null, null, null, colorEffect,
-                                   sceneMode, redeyeReduction, aeBracketing);
+                                   sceneMode, redeyeReduction, aeBracketing, null);
         }
 
         // If scene mode is set, for flash mode, white balance and focus mode
         // read settings from preferences so we retain user preferences.
-        if (!Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
+        if ((hdr != null) && hdr.equals(hdrOn)) {
+            if (mFocusManager.isZslEnabled()) {
+                focusMode = mFocusManager.getFocusMode();
+            }
+            overrideCameraSettings(null, null, focusMode,
+                    CameraSettings.EXPOSURE_DEFAULT_VALUE,
+                    mCurrTouchAfAec,
+                    null,
+                    Integer.toString(mParameters.getSaturation()),
+                    Integer.toString(mParameters.getContrast()),
+                    Integer.toString(mParameters.getSharpness()),
+                    mActivity.getString(R.string.pref_camera_coloreffect_default),
+                    null,
+                    mActivity.getString(R.string.pref_camera_redeyereduction_entry_disable),
+                    mActivity.getString(R.string.pref_camera_ae_bracket_hdr_entry_off),
+                    mActivity.getString(
+                            R.string.pref_camera_advanced_feature_default));
+        } else if (!Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
             flashMode = mPreferences.getString(
                     CameraSettings.KEY_FLASH_MODE,
                     mActivity.getString(R.string.pref_camera_flashmode_default));
@@ -1430,18 +1450,22 @@ public class PhotoModule
                     Integer.toString(mParameters.getContrast()),
                     Integer.toString(mParameters.getSharpness()),
                     colorEffect,
-                    sceneMode, redeyeReduction, aeBracketing);
+                    sceneMode, redeyeReduction, aeBracketing,
+                    mActivity.getString(
+                            R.string.pref_camera_advanced_feature_default));
         } else if (mFocusManager.isZslEnabled()) {
             focusMode = mFocusManager.getFocusMode();
             overrideCameraSettings(flashMode, null, focusMode,
-                                   exposureCompensation, touchAfAec, null,
-                                   null, null, null, colorEffect,
-                                   sceneMode, redeyeReduction, aeBracketing);
+                    exposureCompensation, touchAfAec, null,
+                    null, null, null, colorEffect,
+                    sceneMode, redeyeReduction, aeBracketing, null);
         } else {
             overrideCameraSettings(flashMode, null, mParameters.getFocusMode(),
-                                   exposureCompensation, touchAfAec, null,
-                                   null, null, null, colorEffect,
-                                   sceneMode, redeyeReduction, aeBracketing);
+                    exposureCompensation, touchAfAec, null,
+                    null, null, null, colorEffect,
+                    sceneMode, redeyeReduction, aeBracketing,
+                    mActivity.getString(
+                            R.string.pref_camera_advanced_feature_default));
         }
     }
 
@@ -1451,7 +1475,8 @@ public class PhotoModule
             final String autoExposure, final String saturation,
             final String contrast, final String sharpness,
             final String coloreffect, final String sceneMode,
-            final String redeyeReduction, final String aeBracketing) {
+            final String redeyeReduction, final String aeBracketing,
+            final String aost) {
         mUI.overrideSettings(
                 CameraSettings.KEY_FLASH_MODE, flashMode,
                 CameraSettings.KEY_WHITE_BALANCE, whiteBalance,
@@ -1465,7 +1490,8 @@ public class PhotoModule
                 CameraSettings.KEY_COLOR_EFFECT, coloreffect,
                 CameraSettings.KEY_SCENE_MODE, sceneMode,
                 CameraSettings.KEY_REDEYE_REDUCTION, redeyeReduction,
-                CameraSettings.KEY_AE_BRACKET_HDR, aeBracketing);
+                CameraSettings.KEY_AE_BRACKET_HDR, aeBracketing,
+                CameraSettings.KEY_ADVANCED_FEATURES, aost);
     }
 
     private void loadCameraPreferences() {
