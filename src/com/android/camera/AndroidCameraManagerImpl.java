@@ -623,10 +623,14 @@ class AndroidCameraManagerImpl implements CameraManager {
 
         @Override
         public void onAutoFocus(final boolean b, Camera camera) {
+            final android.hardware.Camera currentCamera = mCamera.getCamera();
+
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mCallback.onAutoFocus(b, mCamera);
+                    if (currentCamera.equals(mCamera.getCamera())) {
+                        mCallback.onAutoFocus(b, mCamera);
+                    }
                 }
             });
         }
@@ -664,10 +668,14 @@ class AndroidCameraManagerImpl implements CameraManager {
         @Override
         public void onAutoFocusMoving(
                 final boolean moving, android.hardware.Camera camera) {
+            final android.hardware.Camera currentCamera = mCamera.getCamera();
+
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mCallback.onAutoFocusMoving(moving, mCamera);
+                    if (currentCamera.equals(mCamera.getCamera())) {
+                        mCallback.onAutoFocusMoving(moving, mCamera);
+                    }
                 }
             });
         }
@@ -705,10 +713,14 @@ class AndroidCameraManagerImpl implements CameraManager {
 
         @Override
         public void onShutter() {
+            final android.hardware.Camera currentCamera = mCamera.getCamera();
+
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mCallback.onShutter(mCamera);
+                    if (currentCamera.equals(mCamera.getCamera())) {
+                        mCallback.onShutter(mCamera);
+                    }
                 }
             });
         }
@@ -747,10 +759,14 @@ class AndroidCameraManagerImpl implements CameraManager {
         @Override
         public void onPictureTaken(
                 final byte[] data, android.hardware.Camera camera) {
+            final android.hardware.Camera currentCamera = mCamera.getCamera();
+
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mCallback.onPictureTaken(data, mCamera);
+                    if (currentCamera.equals(mCamera.getCamera())) {
+                        mCallback.onPictureTaken(data, mCamera);
+                    }
                 }
             });
         }
@@ -789,10 +805,14 @@ class AndroidCameraManagerImpl implements CameraManager {
         @Override
         public void onPreviewFrame(
                 final byte[] data, android.hardware.Camera camera) {
+            final android.hardware.Camera currentCamera = mCamera.getCamera();
+
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mCallback.onPreviewFrame(data, mCamera);
+                    if (currentCamera.equals(mCamera.getCamera())) {
+                        mCallback.onPreviewFrame(data, mCamera);
+                    }
                 }
             });
         }
@@ -828,10 +848,14 @@ class AndroidCameraManagerImpl implements CameraManager {
         @Override
         public void onFaceDetection(
                 final Camera.Face[] faces, Camera camera) {
+            final android.hardware.Camera currentCamera = mCamera.getCamera();
+
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    mCallback.onFaceDetection(faces, mCamera);
+                    if (currentCamera.equals(mCamera.getCamera())) {
+                        mCallback.onFaceDetection(faces, mCamera);
+                    }
                 }
             });
         }
