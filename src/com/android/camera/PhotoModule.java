@@ -1348,7 +1348,7 @@ public class PhotoModule
     }
 
     private void updateCameraSettings() {
-        String sceneMode = mSceneMode;
+        String sceneMode = null;
         String flashMode = null;
         String redeyeReduction = null;
         String aeBracketing = null;
@@ -2571,6 +2571,10 @@ public class PhotoModule
         setAutoWhiteBalanceLockIfSupported();
         setFocusAreasIfSupported();
         setMeteringAreasIfSupported();
+
+        // initialize focus mode
+        mFocusManager.overrideFocusMode(null);
+        mParameters.setFocusMode(mFocusManager.getFocusMode());
 
         // Set picture size.
         String pictureSize = mPreferences.getString(
