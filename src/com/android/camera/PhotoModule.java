@@ -442,10 +442,12 @@ public class PhotoModule
                 }
 
                 case CONFIGURE_SKIN_TONE_FACTOR: {
-                     if (isCameraIdle()) {
-                         mParameters = mCameraDevice.getParameters();
-                         mParameters.set("skinToneEnhancement", String.valueOf(msg.arg1));
-                         mCameraDevice.setParameters(mParameters);
+                     if ((mCameraDevice != null) && isCameraIdle()) {
+                         synchronized (mCameraDevice) {
+                             mParameters = mCameraDevice.getParameters();
+                             mParameters.set("skinToneEnhancement", String.valueOf(msg.arg1));
+                             mCameraDevice.setParameters(mParameters);
+                         }
                     }
                     break;
                 }
@@ -1988,10 +1990,12 @@ public class PhotoModule
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
                 if (mbrightness > MINIMUM_BRIGHTNESS) {
                     mbrightness-=mbrightness_step;
-                    /* Set the "luma-adaptation" parameter */
-                    mParameters = mCameraDevice.getParameters();
-                    mParameters.set("luma-adaptation", String.valueOf(mbrightness));
-                    mCameraDevice.setParameters(mParameters);
+                    synchronized (mCameraDevice) {
+                        /* Set the "luma-adaptation" parameter */
+                        mParameters = mCameraDevice.getParameters();
+                        mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+                        mCameraDevice.setParameters(mParameters);
+                    }
                 }
                 brightnessProgressBar.setProgress(mbrightness);
                 brightnessProgressBar.setVisibility(View.VISIBLE);
@@ -2003,10 +2007,12 @@ public class PhotoModule
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
                 if (mbrightness < MAXIMUM_BRIGHTNESS) {
                     mbrightness+=mbrightness_step;
-                    /* Set the "luma-adaptation" parameter */
-                    mParameters = mCameraDevice.getParameters();
-                    mParameters.set("luma-adaptation", String.valueOf(mbrightness));
-                    mCameraDevice.setParameters(mParameters);
+                    synchronized (mCameraDevice) {
+                        /* Set the "luma-adaptation" parameter */
+                        mParameters = mCameraDevice.getParameters();
+                        mParameters.set("luma-adaptation", String.valueOf(mbrightness));
+                        mCameraDevice.setParameters(mParameters);
+                    }
                 }
                 brightnessProgressBar.setProgress(mbrightness);
                 brightnessProgressBar.setVisibility(View.VISIBLE);
@@ -2575,6 +2581,10 @@ public class PhotoModule
         setFocusAreasIfSupported();
         setMeteringAreasIfSupported();
 
+        // initialize focus mode
+        mFocusManager.overrideFocusMode(null);
+        mParameters.setFocusMode(mFocusManager.getFocusMode());
+
         // Set picture size.
         String pictureSize = mPreferences.getString(
                 CameraSettings.KEY_PICTURE_SIZE, null);
@@ -2739,25 +2749,30 @@ public class PhotoModule
     // the subsets actually need updating. The PREFERENCE set needs extra
     // locking because the preference can be changed from GLThread as well.
     private void setCameraParameters(int updateSet) {
-        boolean doModeSwitch = false;
-
-        if ((updateSet & UPDATE_PARAM_INITIALIZE) != 0) {
-            updateCameraParametersInitialize();
+        if (mCameraDevice == null) {
+            return;
         }
+        synchronized (mCameraDevice) {
+            boolean doModeSwitch = false;
 
-        if ((updateSet & UPDATE_PARAM_ZOOM) != 0) {
-            updateCameraParametersZoom();
-        }
+            if ((updateSet & UPDATE_PARAM_INITIALIZE) != 0) {
+                updateCameraParametersInitialize();
+            }
 
-        if ((updateSet & UPDATE_PARAM_PREFERENCE) != 0) {
-            doModeSwitch = updateCameraParametersPreference();
-        }
+            if ((updateSet & UPDATE_PARAM_ZOOM) != 0) {
+                updateCameraParametersZoom();
+            }
 
-        mCameraDevice.setParameters(mParameters);
+            if ((updateSet & UPDATE_PARAM_PREFERENCE) != 0) {
+                doModeSwitch = updateCameraParametersPreference();
+            }
 
-        // Switch to gcam module if HDR+ was selected
-        if (doModeSwitch && !mIsImageCaptureIntent) {
-            mHandler.sendEmptyMessage(SWITCH_TO_GCAM_MODULE);
+            mCameraDevice.setParameters(mParameters);
+
+            // Switch to gcam module if HDR+ was selected
+            if (doModeSwitch && !mIsImageCaptureIntent) {
+                mHandler.sendEmptyMessage(SWITCH_TO_GCAM_MODULE);
+            }
         }
     }
 
