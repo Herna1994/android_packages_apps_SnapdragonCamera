@@ -211,7 +211,7 @@ public class PhotoMenu extends PieController
    @Override
     public void overrideSettings(final String ... keyvalues) {
         super.overrideSettings(keyvalues);
-       if ((mPopup1 == null) &&  (mPopup2 == null)  &&  (mPopup3 == null)) initializePopup();
+        if ((mPopup1 == null) && (mPopup2 == null) && (mPopup3 == null)) initializePopup();
         mPopup1.overrideSettings(keyvalues);
         mPopup2.overrideSettings(keyvalues);
         mPopup3.overrideSettings(keyvalues);
@@ -268,6 +268,10 @@ public class PhotoMenu extends PieController
          popup2.setPreferenceEnabled(CameraSettings.KEY_FACE_RECOGNITION,false);
      }
 
+     pref = mPreferenceGroup.findPreference(CameraSettings.KEY_CAMERA_HDR);
+     String hdr = (pref != null) ? pref.getValue() : null;
+     String hdrOn = mActivity.getString(R.string.setting_on_value);
+
      pref = mPreferenceGroup.findPreference(CameraSettings.KEY_ADVANCED_FEATURES);
      String advancedFeatures = (pref != null) ? pref.getValue() : null;
 
@@ -278,7 +282,24 @@ public class PhotoMenu extends PieController
      String optiZoomOn = mActivity.getString(R.string.
          pref_camera_advanced_feature_value_optizoom_on);
 
-     if ((zsl != null) && Parameters.ZSL_OFF.equals(zsl)) {
+     if ((hdr != null) && (hdr.equals(hdrOn))) {
+         popup2.setPreferenceEnabled(CameraSettings.KEY_SATURATION,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_CONTRAST,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_SHARPNESS,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_COLOR_EFFECT,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_FLASH_MODE,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_REDEYE_REDUCTION,false);
+         popup2.setPreferenceEnabled(CameraSettings.KEY_TOUCH_AF_AEC,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_AE_BRACKET_HDR,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_EXPOSURE,false);
+         popup3.setPreferenceEnabled(CameraSettings.KEY_ADVANCED_FEATURES,false);
+         if (mHdrItem != null) {
+             mHdrItem.setEnabled(true);
+         }
+         if (mHdrPlusItem != null) {
+             mHdrPlusItem.setEnabled(true);
+         }
+     } else if ((zsl != null) && Parameters.ZSL_OFF.equals(zsl)) {
          popup3.overrideSettings(CameraSettings.KEY_ADVANCED_FEATURES,
                  mActivity.getString(R.string.pref_camera_advanced_feature_default));
 
@@ -290,7 +311,8 @@ public class PhotoMenu extends PieController
              mHdrPlusItem.setEnabled(true);
          }
      } else {
-         if ((advancedFeatures != null) && (advancedFeatures.equals(ubiFocusOn) ||
+         if ((advancedFeatures != null) &&
+                     (advancedFeatures.equals(ubiFocusOn) ||
                  advancedFeatures.equals(chromaFlashOn) ||
                  advancedFeatures.equals(optiZoomOn))) {
              popup3.setPreferenceEnabled(CameraSettings.KEY_FOCUS_MODE,false);
