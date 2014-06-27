@@ -1744,9 +1744,11 @@ public class PhotoModule
             Log.e(TAG, "Failed to open camera:" + mCameraId);
             return false;
         }
+        mParameters = mCameraDevice.getParameters();
+
         initializeCapabilities();
-        mParameters = mInitialParams;
         if (mFocusManager == null) initializeFocusManager();
+        setCameraParameters(UPDATE_PARAM_ALL);
         mHandler.sendEmptyMessage(CAMERA_OPEN_DONE);
         mCameraPreviewParamsReady = true;
         startPreview();
