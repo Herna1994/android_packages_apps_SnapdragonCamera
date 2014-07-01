@@ -496,4 +496,7 @@
 
     <!-- Toast showing non-supported functionality for flash in AE bracket -->
     <string name="flash_aebracket_message">闪光灯不支持AE-Bracket模式</string>
+
+    <!-- toast about switch storage -->
+    <string name="on_switch_save_path_to_sdcard">内部存储空间不足，已切换存储到SD卡</string>
 </resources>
