@@ -256,4 +256,12 @@
             camera:title="@string/pref_camera_auto_hdr_title"
             camera:entries="@array/pref_camera_auto_hdr_entries"
             camera:entryValues="@array/pref_camera_auto_hdr_entryvalues" />
+
+    <ListPreference
+            camera:key="pref_camera_hdr_1x_key"
+            camera:title="@string/pref_camera_hdr_1x_title"
+            camera:defaultValue="@string/pref_camera_hdr_1x_default"
+            camera:entries="@array/pref_camera_hdr_1x_entries"
+            camera:entryValues="@array/pref_camera_hdr_1x_entryvalues" />
+
 </PreferenceGroup>

@@ -209,7 +209,7 @@ public class PhotoModule
     private static final String KEY_PICTURE_FORMAT = "picture-format";
     private static final String KEY_QC_RAW_PICUTRE_SIZE = "raw-size";
     public static final String PIXEL_FORMAT_JPEG = "jpeg";
-
+    public static final String KEY_QC_HDR_NEED_1X = "hdr-need-1x";
     private static final int MIN_SCE_FACTOR = -10;
     private static final int MAX_SCE_FACTOR = +10;
     private int SCE_FACTOR_STEP = 10;
@@ -1528,6 +1528,9 @@ public class PhotoModule
                     Integer.toString(mParameters.getSharpness()),
                     colorEfect,
                     sceneMode, redeyeReduction, aeBracketing);
+            if (CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
+                mUI.overrideSettings(CameraSettings.KEY_QC_HDR_NEED_1X,null);
+            }
         } else if (mFocusManager.isZslEnabled()) {
             focusMode = mParameters.getFocusMode();
             overrideCameraSettings(flashMode, null, focusMode,
@@ -1547,7 +1550,10 @@ public class PhotoModule
             mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, fMode);
             mParameters.setFlashMode(fMode);
         }
-
+        if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
+            mUI.overrideSettings(CameraSettings.KEY_QC_HDR_NEED_1X,
+                    mActivity.getString(R.string.setting_off_value));
+        }
     }
 
     private void overrideCameraSettings(final String flashMode,
@@ -2640,6 +2646,9 @@ public class PhotoModule
             }
         }
         mParameters.setZSLMode(zsl);
+        String hdr_1x  = mPreferences.getString(CameraSettings.KEY_QC_HDR_NEED_1X,
+                mActivity.getString(R.string.pref_camera_hdr_1x_default));
+        mParameters.set(KEY_QC_HDR_NEED_1X, hdr_1x);
         if(zsl.equals("on")) {
             //Switch on ZSL Camera mode
             mSnapshotMode = CameraInfo.CAMERA_SUPPORT_MODE_ZSL;
