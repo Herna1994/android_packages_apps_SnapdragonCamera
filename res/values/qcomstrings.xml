@@ -654,5 +654,11 @@
     <string name="time_lapse_error">Invalid video-size for time-lapse recording.</string>
 
     <string name="pref_camera_videosnapsize_default" translatable="false">1920x1080</string>
+
+    <!-- Settings screen, setting title text for HDR 1x frame needed-->
+    <string name="pref_camera_hdr_1x_title">HDR 1x Frame</string>
+    <string name="pref_camera_hdr_1x_default" translatable="false">
+    on</string>
+
 </resources>
 
