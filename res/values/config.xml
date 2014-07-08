@@ -19,4 +19,8 @@
 <resources>
     <!-- Maximum recording length in milliseconds. 0 means unlimited. -->
     <integer name="max_video_recording_length">0</integer>
+
+    <!-- For saving memory on low RAM devices. Defined as the percentage of
+         camera preview height and width. -->
+    <integer name="panorama_frame_size_reduction">100</integer>
 </resources>
