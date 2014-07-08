@@ -1491,9 +1491,7 @@ public class PhotoModule
         // read settings from preferences so we retain user preferences.
         if (!Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
             flashMode = mParameters.getFlashMode();
-            String whiteBalance = mPreferences.getString(
-                    CameraSettings.KEY_WHITE_BALANCE,
-                    mActivity.getString(R.string.pref_camera_whitebalance_default));
+            String whiteBalance = Parameters.WHITE_BALANCE_AUTO;
             focusMode = mFocusManager.getFocusMode();
             colorEffect = mParameters.getColorEffect();
             exposureCompensation =
@@ -2128,6 +2126,9 @@ public class PhotoModule
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
+                if (CameraUtil.volumeKeyShutterDisable(mActivity)) {
+                   return false;
+                }
             case KeyEvent.KEYCODE_FOCUS:
                 if (/*TODO: mActivity.isInCameraApp() &&*/ mFirstTimeInitialized) {
                     if (event.getRepeatCount() == 0) {
@@ -2197,7 +2198,8 @@ public class PhotoModule
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                if (/*mActivity.isInCameraApp() && */ mFirstTimeInitialized) {
+                if (/*mActivity.isInCameraApp() && */ mFirstTimeInitialized
+                        && !CameraUtil.volumeKeyShutterDisable(mActivity)) {
                     onShutterButtonClick();
                     return true;
                 }
@@ -2944,6 +2946,10 @@ public class PhotoModule
                 mParameters.setFlashMode(Parameters.FLASH_MODE_OFF);
             else {
                 mParameters.setFlashMode(Parameters.FLASH_MODE_AUTO);
+            }
+            if (CameraUtil.isSupported(Parameters.WHITE_BALANCE_AUTO,
+                    mParameters.getSupportedWhiteBalance())) {
+                mParameters.setWhiteBalance(Parameters.WHITE_BALANCE_AUTO);
             }
         }
 
