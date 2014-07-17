@@ -789,7 +789,7 @@ public class VideoModule implements CameraModule,
             CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE,
             mActivity. getString(R.string.pref_camera_hfr_default));
 
-        if(!("off".equals(HighFrameRate)) && !("hsr".equals(HighFrameRate.substring(0,3)))){
+        if(!("off".equals(HighFrameRate))){
             Size size = null;
             try {
                 if (isSupported(HighFrameRate, mParameters.getSupportedVideoHighFrameRateModes())) {
