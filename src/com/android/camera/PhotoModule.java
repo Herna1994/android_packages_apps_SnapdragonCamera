@@ -820,7 +820,7 @@ public class PhotoModule
             mFaceDetectionStarted = false;
             mCameraDevice.setFaceDetectionCallback(null, null);
             mCameraDevice.stopFaceDetection();
-            mUI.clearFaces();
+            mUI.onStopFaceDetection();
         }
     }
 
@@ -1060,8 +1060,7 @@ public class PhotoModule
             }
             if (mIsImageCaptureIntent) {
                 stopPreview();
-            }
-            if (mSceneMode == CameraUtil.SCENE_MODE_HDR) {
+            } else if (mSceneMode == CameraUtil.SCENE_MODE_HDR) {
                 mUI.showSwitcher();
                 mUI.setSwipingEnabled(true);
             }
