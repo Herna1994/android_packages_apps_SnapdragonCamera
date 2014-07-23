@@ -139,6 +139,7 @@ public class CameraSettings {
     public static final String FLIP_MODE_VH = "flip-vh";
 
     private static final String KEY_QC_PICTURE_FORMAT = "picture-format-values";
+    public static final String KEY_VIDEO_ROTATION = "pref_camera_video_rotation_key";
     private static final String VIDEO_QUALITY_HIGH = "high";
     private static final String VIDEO_QUALITY_MMS = "mms";
     private static final String VIDEO_QUALITY_YOUTUBE = "youtube";
@@ -358,6 +359,7 @@ public class CameraSettings {
         ListPreference videoSnapSize = group.findPreference(KEY_VIDEO_SNAPSHOT_SIZE);
         ListPreference videoHdr = group.findPreference(KEY_VIDEO_HDR);
         ListPreference pictureFormat = group.findPreference(KEY_PICTURE_FORMAT);
+        ListPreference videoRotation = group.findPreference(KEY_VIDEO_ROTATION);
 
         if (touchAfAec != null) {
             filterUnsupportedOptions(group,
@@ -438,6 +440,11 @@ public class CameraSettings {
         if(advancedFeatures != null) {
             filterUnsupportedOptions(group,
                     advancedFeatures, getSupportedAdvancedFeatures(mParameters));
+        }
+
+        if (videoRotation != null) {
+            filterUnsupportedOptions(group,
+                    videoRotation, mParameters.getSupportedVideoRotationValues());
         }
     }
     private void initPreference(PreferenceGroup group) {

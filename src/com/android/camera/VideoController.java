@@ -40,4 +40,5 @@ public interface VideoController extends OnShutterButtonListener, OnPauseButtonL
     // Callbacks for camera preview UI events.
     public void onPreviewUIReady();
     public void onPreviewUIDestroyed();
+    public void updateVideoSettings();
 }

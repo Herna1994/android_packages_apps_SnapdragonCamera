@@ -91,7 +91,7 @@ public class VideoUI implements PieRenderer.PieListener,
     private RotateLayout mRecordingTimeRect;
     private boolean mRecordingStarted = false;
     private SurfaceTexture mSurfaceTexture;
-    private VideoController mController;
+    public  VideoController mController;
     private int mZoomMax;
     private List<Integer> mZoomRatios;
     private View mPreviewThumb;

@@ -27,6 +27,7 @@ import com.android.camera.ui.PieItem.OnClickListener;
 import com.android.camera.ui.PieRenderer;
 import com.android.camera.ui.TimeIntervalPopup;
 import com.android.camera2.R;
+import android.util.Log;
 
 public class VideoMenu extends PieController
         implements MoreSettingPopup.Listener,
@@ -72,7 +73,8 @@ public class VideoMenu extends PieController
                 CameraSettings.KEY_AUDIO_ENCODER,
                 CameraSettings.KEY_VIDEO_DURATION,
                 CameraSettings.KEY_RECORD_LOCATION,
-                CameraSettings.KEY_CAMERA_SAVEPATH
+                CameraSettings.KEY_CAMERA_SAVEPATH,
+                CameraSettings.KEY_VIDEO_ROTATION
         };
 
        //settings popup
@@ -82,7 +84,7 @@ public class VideoMenu extends PieController
                 CameraSettings.KEY_POWER_MODE,
                 CameraSettings.KEY_WHITE_BALANCE,
                 CameraSettings.KEY_VIDEO_HIGH_FRAME_RATE,
-                CameraSettings.KEY_VIDEOCAMERA_FLASH_MODE,
+                CameraSettings.KEY_VIDEOCAMERA_FLASH_MODE
        };
 
         PieItem item1 = makeItem(R.drawable.ic_settings_holo_light);
@@ -95,6 +97,7 @@ public class VideoMenu extends PieController
                     mPopupStatus = POPUP_FIRST_LEVEL;
                 }
                 mUI.showPopup(mPopup1);
+                mUI.mController.updateVideoSettings();
                 popupNum = 1;
             }
         });
