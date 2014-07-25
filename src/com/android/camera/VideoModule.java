@@ -466,7 +466,6 @@ public class VideoModule implements CameraModule,
 
         mUI.showTimeLapseUI(mCaptureTimeLapse);
         initializeVideoSnapshot();
-        resizeForPreviewAspectRatio();
 
         initializeVideoControl();
         mPendingSwitchCameraId = -1;
@@ -932,22 +931,8 @@ public class VideoModule implements CameraModule,
                 ". mDesiredPreviewHeight=" + mDesiredPreviewHeight);
     }
 
-    void setPreviewFrameLayoutCameraOrientation(){
-        CameraInfo info = CameraHolder.instance().getCameraInfo()[mCameraId];
-
-        //if camera mount angle is 0 or 180, we want to resize preview
-        if (info.orientation % 180 == 0)
-            mUI.cameraOrientationPreviewResize(true);
-        else
-            mUI.cameraOrientationPreviewResize(false);
-    }
-
     @Override
-    public void resizeForPreviewAspectRatio() {
-        setPreviewFrameLayoutCameraOrientation();
-        mUI.setAspectRatio(
-                (double) mProfile.videoFrameWidth / mProfile.videoFrameHeight);
-    }
+    public void resizeForPreviewAspectRatio() {}
 
     @Override
     public void onSwitchSavePath() {
@@ -985,7 +970,6 @@ public class VideoModule implements CameraModule,
                 return;
             }
             readVideoPreferences();
-            resizeForPreviewAspectRatio();
             startPreview();
         } else {
             // preview already started
@@ -2383,7 +2367,6 @@ public class VideoModule implements CameraModule,
     public void onConfigurationChanged(Configuration newConfig) {
         Log.v(TAG, "onConfigurationChanged");
         setDisplayOrientation();
-        resizeForPreviewAspectRatio();
     }
 
     @Override
@@ -2423,7 +2406,6 @@ public class VideoModule implements CameraModule,
                     || size.height != mDesiredPreviewHeight || mRestartPreview) {
 
                 stopPreview();
-                resizeForPreviewAspectRatio();
                 startPreview(); // Parameters will be set in startPreview().
             } else {
                 setCameraParameters();
@@ -2460,7 +2442,6 @@ public class VideoModule implements CameraModule,
         readVideoPreferences();
         startPreview();
         initializeVideoSnapshot();
-        resizeForPreviewAspectRatio();
         initializeVideoControl();
 
         // From onResume
