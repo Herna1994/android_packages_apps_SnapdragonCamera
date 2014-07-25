@@ -609,7 +609,7 @@ public class PhotoModule
         }
         Log.v(TAG, "onCameraOpened");
         openCameraCommon();
-        resizeForPreviewAspectRatio();
+        setPreviewSize();
     }
 
     private void switchCamera() {
@@ -649,7 +649,7 @@ public class PhotoModule
 
         // reset zoom value index
         mZoomValue = 0;
-        resizeForPreviewAspectRatio();
+        setPreviewSize();
         openCameraCommon();
 
         // Start switch camera animation. Post a message because
@@ -695,27 +695,8 @@ public class PhotoModule
         }
     }
 
-    void setPreviewFrameLayoutCameraOrientation(){
-        CameraInfo info = CameraHolder.instance().getCameraInfo()[mCameraId];
-        //if camera mount angle is 0 or 180, we want to resize preview
-        if (info.orientation % 180 == 0){
-            mUI.cameraOrientationPreviewResize(true);
-        } else{
-            mUI.cameraOrientationPreviewResize(false);
-        }
-    }
-
     @Override
-    public void resizeForPreviewAspectRatio() {
-        if ( mCameraDevice == null || mParameters == null) {
-            Log.e(TAG, "Camera not yet initialized");
-            return;
-        }
-        setPreviewFrameLayoutCameraOrientation();
-        Size size = mParameters.getPreviewSize();
-        Log.e(TAG,"Width = "+ size.width+ "Height = "+size.height);
-        mUI.setAspectRatio((float) size.width / size.height);
-    }
+    public void resizeForPreviewAspectRatio() {}
 
     @Override
     public void onSwitchSavePath() {
@@ -2183,7 +2164,7 @@ public class PhotoModule
     public void onConfigurationChanged(Configuration newConfig) {
         Log.v(TAG, "onConfigurationChanged");
         setDisplayOrientation();
-        resizeForPreviewAspectRatio();
+        setPreviewSize();
     }
 
     @Override
@@ -2951,6 +2932,34 @@ public class PhotoModule
         }
     }
 
+    private void setPreviewSize() {
+        // Set a preview size that is closest to the viewfinder height and has
+        // the right aspect ratio.
+        Size size = mParameters.getPictureSize();
+        List<Size> sizes = mParameters.getSupportedPreviewSizes();
+        Size optimalSize = CameraUtil.getOptimalPreviewSize(mActivity, sizes,
+                (double) size.width / size.height);
+        Size original = mParameters.getPreviewSize();
+        if (!original.equals(optimalSize)) {
+            mUI.setAspectRatio(optimalSize.width, optimalSize.height);
+            mParameters.setPreviewSize(optimalSize.width, optimalSize.height);
+
+            // Zoom related settings will be changed for different preview
+            // sizes, so set and read the parameters to get latest values
+            if (mHandler.getLooper() == Looper.myLooper()) {
+                // On UI thread only, not when camera starts up
+                setupPreview();
+            } else {
+                mCameraDevice.setParameters(mParameters);
+            }
+            mParameters = mCameraDevice.getParameters();
+            Log.v(TAG, "Preview Size changed. Restart Preview");
+            mRestartPreview = true;
+        }
+
+        Log.v(TAG, "Preview size is " + optimalSize.width + "x" + optimalSize.height);
+    }
+
     /** This can run on a background thread, so don't do UI updates here.*/
     private boolean updateCameraParametersPreference() {
         setAutoExposureLockIfSupported();
@@ -2982,32 +2991,8 @@ public class PhotoModule
                 }
             }
         }
-        Size size = mParameters.getPictureSize();
 
-        // Set a preview size that is closest to the viewfinder height and has
-        // the right aspect ratio.
-        List<Size> sizes = mParameters.getSupportedPreviewSizes();
-        Size optimalSize = CameraUtil.getOptimalPreviewSize(mActivity, sizes,
-                (double) size.width / size.height);
-        Size original = mParameters.getPreviewSize();
-        if (!original.equals(optimalSize)) {
-            mParameters.setPreviewSize(optimalSize.width, optimalSize.height);
-
-            // Zoom related settings will be changed for different preview
-            // sizes, so set and read the parameters to get latest values
-            if (mHandler.getLooper() == Looper.myLooper()) {
-                // On UI thread only, not when camera starts up
-                setupPreview();
-            } else {
-                mCameraDevice.setParameters(mParameters);
-            }
-            mParameters = mCameraDevice.getParameters();
-            Log.v(TAG, "Preview Size changed. Restart Preview");
-            mRestartPreview = true;
-        }
-
-        Log.v(TAG, "Preview size is " + optimalSize.width + "x" + optimalSize.height);
-
+        setPreviewSize();
         // Since changing scene mode may change supported values, set scene mode
         // first. HDR is a scene mode. To promote it in UI, it is stored in a
         // separate preference.
@@ -3182,7 +3167,7 @@ public class PhotoModule
              if(mRestartPreview && mCameraState != PREVIEW_STOPPED) {
                 Log.v(TAG, "Restarting Preview...");
                 stopPreview();
-                resizeForPreviewAspectRatio();
+                setPreviewSize();
                 startPreview();
                 setCameraState(IDLE);
             }
@@ -3271,7 +3256,7 @@ public class PhotoModule
         } else {
             mHandler.sendEmptyMessage(SET_PHOTO_UI_PARAMS);
         }
-        resizeForPreviewAspectRatio();
+        setPreviewSize();
         if (mSeekBarInitialized == true){
             Log.v(TAG, "onSharedPreferenceChanged Skin tone bar: change");
             // skin tone is enabled only for party and portrait BSM
