@@ -26,6 +26,9 @@ import java.util.Map;
 
 import android.app.Activity;
 import android.util.Log;
+import android.view.View;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.android.camera.CameraPreference.OnPreferenceChangedListener;
 import com.android.camera.ui.RotateImageView;
@@ -41,7 +44,7 @@ public class MenuController {
     protected PreferenceGroup mPreferenceGroup;
     protected OnPreferenceChangedListener mListener;
     protected List<IconListPreference> mPreferences;
-    protected Map<IconListPreference, RotateImageView> mPreferenceMap;
+    protected Map<IconListPreference, View> mPreferenceMap;
     private Map<IconListPreference, String> mOverrides;
 
     public void setListener(OnPreferenceChangedListener listener) {
@@ -51,7 +54,7 @@ public class MenuController {
     public MenuController(Activity activity) {
         mActivity = activity;
         mPreferences = new ArrayList<IconListPreference>();
-        mPreferenceMap = new HashMap<IconListPreference, RotateImageView>();
+        mPreferenceMap = new HashMap<IconListPreference, View>();
         mOverrides = new HashMap<IconListPreference, String>();
     }
 
@@ -85,7 +88,7 @@ public class MenuController {
     }
 
     protected void reloadPreference(IconListPreference pref) {
-        RotateImageView switcher = mPreferenceMap.get(pref);
+        View switcher = mPreferenceMap.get(pref);
         if (switcher == null)
             return;
         String overrideValue = mOverrides.get(pref);
@@ -101,7 +104,8 @@ public class MenuController {
                 return;
             }
         }
-        switcher.setImageResource(pref.getLargeIconIds()[index]);
+        ImageView iv = (ImageView) ((FrameLayout) switcher).getChildAt(0);
+        iv.setImageResource(pref.getLargeIconIds()[index]);
 
     }
 

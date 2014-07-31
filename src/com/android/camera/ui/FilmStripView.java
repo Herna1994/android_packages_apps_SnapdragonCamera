@@ -37,6 +37,8 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Scroller;
 
+import com.android.camera.CustomPhotoMenu;
+import com.android.camera.CustomVideoMenu;
 import com.android.camera.PreviewGestures;
 import com.android.camera.CameraActivity;
 import com.android.camera.data.LocalData;
@@ -101,7 +103,9 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
     private int mLastTotalNumber = 0;
     private RenderOverlay mRenderOverlay;
     private PreviewGestures mPreviewGestures;
-
+    private boolean sendToPreviewMenu;
+    private boolean sendToMenu;
+    private boolean reset;
     /**
      * Common interface for all images in the filmstrip.
      */
@@ -1816,6 +1820,92 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
     public boolean onTouchEvent(MotionEvent ev) {
         mGestureRecognizer.onTouchEvent(ev);
         return true;
+    }
+
+    public boolean checkSendToModeView(MotionEvent ev) {
+        if (sendToPreviewMenu || sendToMenu)
+            return true;
+        CustomPhotoMenu pMenu = mPreviewGestures.getCustomPhotoMenu();
+        CustomVideoMenu vMenu = mPreviewGestures.getCustomVideoMenu();
+        if (pMenu != null) {
+            if (pMenu.isMenuBeingShown()) {
+                if (pMenu.isMenuBeingAnimated()) {
+                    if (pMenu.isOverMenu(ev)) {
+                        sendToMenu = true;
+                        return true;
+                    }
+                }
+            }
+
+            if (pMenu.isPreviewMenuBeingShown()) {
+                if (pMenu.isOverPreviewMenu(ev)) {
+                    sendToPreviewMenu = true;
+                    return true;
+                }
+            }
+        }
+        if (vMenu != null) {
+            if (vMenu.isMenuBeingShown()) {
+                if (vMenu.isMenuBeingAnimated()) {
+                    if (vMenu.isOverMenu(ev)) {
+                        sendToMenu = true;
+                        return true;
+                    }
+                }
+            }
+
+            if (vMenu.isPreviewMenuBeingShown()) {
+                if (vMenu.isOverPreviewMenu(ev)) {
+                    sendToPreviewMenu = true;
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean sendToModeView(MotionEvent ev) {
+        if (reset) {
+            sendToPreviewMenu = false;
+            sendToMenu = false;
+            reset = false;
+        }
+        if (sendToPreviewMenu || sendToMenu) {
+            if (MotionEvent.ACTION_UP == ev.getActionMasked()
+                    || MotionEvent.ACTION_CANCEL == ev.getActionMasked())
+                reset = true;
+        }
+        CustomPhotoMenu pMenu = mPreviewGestures.getCustomPhotoMenu();
+        CustomVideoMenu vMenu = mPreviewGestures.getCustomVideoMenu();
+
+        if (pMenu != null) {
+            if (sendToPreviewMenu)
+                return pMenu.sendTouchToPreviewMenu(ev);
+            if (sendToMenu)
+                return pMenu.sendTouchToMenu(ev);
+            if (pMenu.isMenuBeingShown()) {
+                return pMenu.sendTouchToMenu(ev);
+            }
+
+            if (pMenu.isPreviewMenuBeingShown()) {
+                return pMenu.sendTouchToPreviewMenu(ev);
+            }
+        }
+
+        if (vMenu != null) {
+            if (sendToPreviewMenu)
+                return vMenu.sendTouchToPreviewMenu(ev);
+            if (sendToMenu)
+                return vMenu.sendTouchToMenu(ev);
+            if (vMenu.isMenuBeingShown()) {
+                return vMenu.sendTouchToMenu(ev);
+            }
+
+            if (vMenu.isPreviewMenuBeingShown()) {
+                return vMenu.sendTouchToPreviewMenu(ev);
+            }
+        }
+        return false;
     }
 
     private void updateViewItem(int itemID) {

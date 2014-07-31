@@ -1237,7 +1237,12 @@ public class CameraActivity extends Activity
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        boolean result = super.dispatchTouchEvent(ev);
+        boolean result = false;
+        if (mFilmStripView.checkSendToModeView(ev)) {
+            result = mFilmStripView.sendToModeView(ev);
+        }
+        if (result == false)
+            result = super.dispatchTouchEvent(ev);
         if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
             // Real deletion is postponed until the next user interaction after
             // the gesture that triggers deletion. Until real deletion is performed,
