@@ -1508,7 +1508,7 @@ public class PhotoModule
                     null, null, null, colorEffect,
                     sceneMode, redeyeReduction, aeBracketing, null);
         } else {
-            overrideCameraSettings(flashMode, null, mParameters.getFocusMode(),
+            overrideCameraSettings(flashMode, null, null,
                     exposureCompensation, touchAfAec, null,
                     null, null, null, colorEffect,
                     sceneMode, redeyeReduction, aeBracketing,
