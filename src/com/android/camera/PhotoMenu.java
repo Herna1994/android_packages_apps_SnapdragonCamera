@@ -288,6 +288,8 @@ public class PhotoMenu extends PieController
          pref_camera_advanced_feature_value_chromaflash_on);
      String optiZoomOn = mActivity.getString(R.string.
          pref_camera_advanced_feature_value_optizoom_on);
+     String fssrOn = mActivity.getString(R.string.
+         pref_camera_advanced_feature_value_FSSR_on);
 
      if ((zsl != null) && Parameters.ZSL_OFF.equals(zsl)) {
          popup3.overrideSettings(CameraSettings.KEY_ADVANCED_FEATURES,
@@ -303,7 +305,8 @@ public class PhotoMenu extends PieController
      } else {
          if ((advancedFeatures != null) && (advancedFeatures.equals(ubiFocusOn) ||
                  advancedFeatures.equals(chromaFlashOn) ||
-                 advancedFeatures.equals(optiZoomOn))) {
+                 advancedFeatures.equals(optiZoomOn) ||
+                 advancedFeatures.equals(fssrOn))) {
              popup3.setPreferenceEnabled(CameraSettings.KEY_FOCUS_MODE,false);
              popup3.setPreferenceEnabled(CameraSettings.KEY_FLASH_MODE,false);
              popup3.setPreferenceEnabled(CameraSettings.KEY_AE_BRACKET_HDR,false);
