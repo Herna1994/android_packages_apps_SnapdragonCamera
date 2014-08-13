@@ -176,6 +176,7 @@ public class CameraActivity extends Activity
     private ViewGroup mUndoDeletionBar;
     private boolean mIsUndoingDeletion = false;
     private boolean mIsEditActivityInProgress = false;
+    protected boolean mIsModuleSwitchInProgress = false;
 
     private Uri[] mNfcPushUris = new Uri[1];
 
@@ -1418,6 +1419,7 @@ public class CameraActivity extends Activity
             return;
         }
 
+        mIsModuleSwitchInProgress = true;
         CameraHolder.instance().keep();
         closeModule(mCurrentModule);
         setModuleFromIndex(moduleIndex);
@@ -1432,6 +1434,7 @@ public class CameraActivity extends Activity
         // starts up.
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.edit().putInt(CameraSettings.KEY_STARTUP_MODULE_INDEX, moduleIndex).apply();
+        mIsModuleSwitchInProgress = false;
     }
 
     /**
