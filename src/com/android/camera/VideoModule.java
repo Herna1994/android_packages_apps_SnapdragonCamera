@@ -473,6 +473,7 @@ public class VideoModule implements CameraModule,
     }
 
     private void takeASnapshot() {
+        if (mParameters == null) return;
         // Only take snapshots if video snapshot is supported by device
         if (CameraUtil.isVideoSnapshotSupported(mParameters) && !mIsVideoCaptureIntent
             && !is4KEnabled()) {

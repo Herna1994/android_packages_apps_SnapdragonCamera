@@ -214,7 +214,7 @@ public class PhotoMenu extends PieController
    @Override
     public void overrideSettings(final String ... keyvalues) {
         super.overrideSettings(keyvalues);
-       if ((mPopup1 == null) &&  (mPopup2 == null)  &&  (mPopup3 == null)) initializePopup();
+       if ((mPopup1 == null) ||  (mPopup2 == null)  ||  (mPopup3 == null)) initializePopup();
         mPopup1.overrideSettings(keyvalues);
         mPopup2.overrideSettings(keyvalues);
         mPopup3.overrideSettings(keyvalues);
