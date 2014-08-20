@@ -2026,6 +2026,14 @@ public class VideoModule implements CameraModule,
                 mUI.initializePopup(mPreferenceGroup);
              }
         }
+        //setting video rotation
+        String videoRotation = mPreferences.getString(
+            CameraSettings.KEY_VIDEO_ROTATION,
+            mActivity.getString(R.string.pref_camera_video_rotation_default));
+        if (isSupported(videoRotation, mParameters.getSupportedVideoRotationValues())) {
+
+            mParameters.setVideoRotation(videoRotation);
+        }
     }
     @SuppressWarnings("deprecation")
     private void setCameraParameters() {
@@ -2047,6 +2055,7 @@ public class VideoModule implements CameraModule,
         String recordSize = videoWidth + "x" + videoHeight;
         Log.e(TAG,"Video dimension in App->"+recordSize);
         mParameters.set("video-size", recordSize);
+
         // Set white balance parameter.
         String whiteBalance = mPreferences.getString(
                 CameraSettings.KEY_WHITE_BALANCE,
@@ -2102,6 +2111,7 @@ public class VideoModule implements CameraModule,
                 CameraProfile.QUALITY_HIGH);
         mParameters.setJpegQuality(jpegQuality);
         //Call Qcom related Camera Parameters
+        updateVideoSettings();
         qcomSetCameraParameters();
 
         boolean flag = false;
@@ -2409,6 +2419,34 @@ public class VideoModule implements CameraModule,
     @Override
     public void onButtonContinue() {
         resumeVideoRecording();
+    }
+
+    private void overrideVideoSettings(final String videoRotation) {
+        mUI.overrideSettings(CameraSettings.KEY_VIDEO_ROTATION, videoRotation);
+    }
+
+    public void updateVideoSettings() {
+        //Overriding video rotation to 0 for 4k resolutions for back camera
+        if ((videoWidth == 4096 && videoHeight == 2160) || (videoWidth == 3840 && videoHeight == 2160))
+        {
+            String videoRotation = mActivity.getString(R.string.
+                    pref_camera_video_rotation_entry_0);
+            overrideVideoSettings(videoRotation);
+        } else {
+            overrideVideoSettings(null);
+        }
+
+        //Overriding video rotation to 0 for 1080p and 720p for front camera
+        if (mCameraId == 1) {
+            if((videoWidth == 1920 && videoHeight == 1080) || (videoWidth == 1280 && videoHeight == 720))
+            {
+                String videoRotation = mActivity.getString(R.string.
+                        pref_camera_video_rotation_entry_0);
+                overrideVideoSettings(videoRotation);
+            } else {
+                overrideVideoSettings(null);
+            }
+        }
     }
 
 }
