@@ -1701,7 +1701,8 @@ public class PhotoModule
             oldOrientation != OrientationEventListener.ORIENTATION_UNKNOWN) {
             Log.v(TAG, "onOrientationChanged, update parameters");
             if (mParameters != null && mCameraDevice != null) {
-                onSharedPreferenceChanged();
+                setFlipValue();
+                mCameraDevice.setParameters(mParameters);
             }
         }
 
@@ -2871,6 +2872,18 @@ public class PhotoModule
                 mCameraDevice.setHistogramMode(null);
             }
         }
+
+        setFlipValue();
+
+        /* Disable focus if aebracket is ON */
+        String aeBracket = mParameters.get(CameraSettings.KEY_QC_AE_BRACKETING);
+        if (!aeBracket.equalsIgnoreCase("off")) {
+            String fMode = Parameters.FLASH_MODE_OFF;
+            mParameters.setFlashMode(fMode);
+        }
+    }
+
+    private void setFlipValue() {
         // Read Flip mode from adb command
         //value: 0(default) - FLIP_MODE_OFF
         //value: 1 - FLIP_MODE_H
@@ -2911,13 +2924,8 @@ public class PhotoModule
         if(CameraUtil.isSupported(picture_flip, CameraSettings.getSupportedFlipMode(mParameters))){
             mParameters.set(CameraSettings.KEY_QC_SNAPSHOT_PICTURE_FLIP, picture_flip);
         }
-        /* Disable focus if aebracket is ON */
-        String aeBracket = mParameters.get(CameraSettings.KEY_QC_AE_BRACKETING);
-        if (!aeBracket.equalsIgnoreCase("off")) {
-            String fMode = Parameters.FLASH_MODE_OFF;
-            mParameters.setFlashMode(fMode);
-        }
     }
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     private void setAutoExposureLockIfSupported() {
         if (mAeLockSupported) {
