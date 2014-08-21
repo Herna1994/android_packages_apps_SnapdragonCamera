@@ -196,6 +196,7 @@ public class PhotoModule
     private static final String PERSIST_LONG_ENABLE = "persist.camera.longshot.enable";
     private static final String PERSIST_LONG_SAVE = "persist.camera.longshot.save";
     private static final String PERSIST_PREVIEW_RESTART = "persist.camera.feature.restart";
+    private static final String PERSIST_CAPTURE_ANIMATION = "persist.camera.capture.animate";
 
     private static final int MINIMUM_BRIGHTNESS = 0;
     private static final int MAXIMUM_BRIGHTNESS = 6;
@@ -326,6 +327,8 @@ public class PhotoModule
 
     // True if all the parameters needed to start preview is ready.
     private boolean mCameraPreviewParamsReady = false;
+
+    private boolean mAnimateCapture = true;
 
     private MediaSaveService.OnMediaSavedListener mOnMediaSavedListener =
             new MediaSaveService.OnMediaSavedListener() {
@@ -1186,7 +1189,9 @@ public class PhotoModule
                     else {
                         mUI.setDownFactor(4);
                     }
-                    mUI.animateCapture(jpegData, orientation, mMirror);
+                    if (mAnimateCapture) {
+                        mUI.animateCapture(jpegData, orientation, mMirror);
+                    }
                 }
             } else {
                 mJpegImageData = jpegData;
@@ -2005,6 +2010,9 @@ public class PhotoModule
 
         mOnResumeTime = SystemClock.uptimeMillis();
         checkDisplayRotation();
+
+        mAnimateCapture = SystemProperties.getBoolean(
+                PERSIST_CAPTURE_ANIMATION, true);
     }
 
     @Override
