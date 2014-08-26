@@ -123,6 +123,8 @@ public class CameraSettings {
     private static final String TRUE = "true";
     private static final String FALSE = "false";
 
+    public static final String KEY_QC_HDR_NEED_1X = "pref_camera_hdr_1x_key";
+
     //for flip
     public static final String KEY_QC_PREVIEW_FLIP = "preview-flip";
     public static final String KEY_QC_VIDEO_FLIP = "video-flip";
