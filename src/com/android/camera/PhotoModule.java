@@ -1137,6 +1137,7 @@ public class PhotoModule
                 }
                 mUI.resumeFaceDetection();
                 setCameraState(IDLE);
+                startFaceDetection();
             }
 
             ExifInterface exif = Exif.getExif(jpegData);
