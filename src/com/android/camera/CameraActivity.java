@@ -16,6 +16,8 @@
 
 package com.android.camera;
 
+import android.view.Display;
+import android.graphics.Point;
 import android.animation.Animator;
 import android.annotation.TargetApi;
 import android.app.ActionBar;
@@ -81,6 +83,7 @@ import com.android.camera.tinyplanet.TinyPlanetFragment;
 import com.android.camera.ui.ModuleSwitcher;
 import com.android.camera.ui.DetailsDialog;
 import com.android.camera.ui.FilmStripView;
+import com.android.camera.ui.RenderOverlay;
 import com.android.camera.util.ApiHelper;
 import com.android.camera.util.CameraUtil;
 import com.android.camera.util.GcamHelper;
@@ -143,6 +146,10 @@ public class CameraActivity extends Activity
     private static final int SUPPORT_SHOW_ON_MAP = 1 << 9;
     private static final int SUPPORT_ALL = 0xffffffff;
 
+    // Pie Setting Menu enabled
+    private static boolean PIE_MENU_ENABLED = false;
+    private static boolean DEVELOPER_MENU_ENABLED = false;
+
     /** This data adapter is used by FilmStripView. */
     private LocalDataAdapter mDataAdapter;
     /** This data adapter represents the real local camera data. */
@@ -193,6 +200,8 @@ public class CameraActivity extends Activity
 
     private Intent mVideoShareIntent;
     private Intent mImageShareIntent;
+    public static int SETTING_LIST_WIDTH_1 = 250;
+    public static int SETTING_LIST_WIDTH_2 = 250;
 
     private class MyOrientationEventListener
             extends OrientationEventListener {
@@ -301,6 +310,18 @@ public class CameraActivity extends Activity
 
     public static boolean isFirstStartAfterScreenOn() {
         return sFirstStartAfterScreenOn;
+    }
+
+    public static boolean isPieMenuEnabled() {
+        return PIE_MENU_ENABLED;
+    }
+
+    public static boolean isDeveloperMenuEnabled() {
+        return DEVELOPER_MENU_ENABLED;
+    }
+
+    public static void enableDeveloperMenu() {
+        DEVELOPER_MENU_ENABLED = true;
     }
 
     public static void resetFirstStartAfterScreenOn() {
@@ -1182,6 +1203,21 @@ public class CameraActivity extends Activity
         getContentResolver().registerContentObserver(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI, true,
                 mLocalVideosObserver);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        DEVELOPER_MENU_ENABLED = prefs.getBoolean(CameraSettings.KEY_DEVELOPER_MENU, false);
+
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        int width = size.x;
+        int height = size.y;
+
+        int lower = Math.min(width, height);
+
+        int offset = lower * 10 / 100;
+        SETTING_LIST_WIDTH_1 = lower / 2 + offset;
+        SETTING_LIST_WIDTH_2 = lower / 2 - offset;
     }
 
     private void setRotationAnimation() {
@@ -1352,6 +1388,10 @@ public class CameraActivity extends Activity
         } else if (!mCurrentModule.onBackPressed()) {
             super.onBackPressed();
         }
+    }
+
+    public void setPreviewGestures(PreviewGestures previewGestures) {
+        mFilmStripView.setPreviewGestures(previewGestures);
     }
 
     public boolean isAutoRotateScreen() {

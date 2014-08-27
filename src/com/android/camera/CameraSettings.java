@@ -96,6 +96,7 @@ public class CameraSettings {
     public static final String KEY_AE_BRACKET_HDR = "pref_camera_ae_bracket_hdr_key";
     public static final String KEY_ADVANCED_FEATURES = "pref_camera_advanced_features_key";
     public static final String KEY_HDR_MODE = "pref_camera_hdr_mode_key";
+    public static final String KEY_DEVELOPER_MENU = "pref_developer_menu_key";
 
     public static final String KEY_VIDEO_SNAPSHOT_SIZE = "pref_camera_videosnapsize_key";
     public static final String KEY_VIDEO_HIGH_FRAME_RATE = "pref_camera_hfr_key";
@@ -588,7 +589,6 @@ public class CameraSettings {
         exposure.setEntries(entries);
         exposure.setLabels(labels);
         exposure.setEntryValues(entryValues);
-        exposure.setLargeIconIds(icons);
     }
 
     private void buildCameraId(

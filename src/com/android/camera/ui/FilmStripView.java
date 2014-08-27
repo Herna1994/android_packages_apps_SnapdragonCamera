@@ -37,10 +37,12 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Scroller;
 
+import com.android.camera.PreviewGestures;
 import com.android.camera.CameraActivity;
 import com.android.camera.data.LocalData;
 import com.android.camera.ui.FilmStripView.ImageData.PanoramaSupportCallback;
 import com.android.camera.ui.FilmstripBottomControls.BottomControlsListener;
+import com.android.camera.ui.RenderOverlay;
 import com.android.camera.util.CameraUtil;
 import com.android.camera.util.PhotoSphereHelper.PanoramaViewHelper;
 import com.android.camera.util.UsageStatistics;
@@ -97,6 +99,8 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
     private float mOverScaleFactor = 1f;
 
     private int mLastTotalNumber = 0;
+    private RenderOverlay mRenderOverlay;
+    private PreviewGestures mPreviewGestures;
 
     /**
      * Common interface for all images in the filmstrip.
@@ -703,6 +707,13 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
         if (mOverScaleFactor < 1f) {
             mOverScaleFactor = 1f;
         }
+    }
+
+    public void setRenderOverlay(RenderOverlay renderOverlay) {
+        mRenderOverlay = renderOverlay;
+    }
+    public void setPreviewGestures(PreviewGestures previewGestures) {
+        mPreviewGestures = previewGestures;
     }
 
     /**
@@ -2714,6 +2725,8 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
 
         @Override
         public boolean onScroll(float x, float y, float dx, float dy) {
+            if (mPreviewGestures != null && mPreviewGestures.waitUntilNextDown())
+                return false;
             ViewItem currItem = mViewItem[mCurrentItem];
             if (currItem == null) {
                 return false;
@@ -2779,6 +2792,8 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
 
         @Override
         public boolean onFling(float velocityX, float velocityY) {
+            if (mPreviewGestures != null && mPreviewGestures.waitUntilNextDown())
+                return false;
             final ViewItem currItem = mViewItem[mCurrentItem];
             if (currItem == null) {
                 return false;
