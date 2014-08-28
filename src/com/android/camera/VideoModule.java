@@ -470,7 +470,21 @@ public class VideoModule implements CameraModule,
     @Override
     public void onSingleTapUp(View view, int x, int y) {
         if (mMediaRecorderPausing) return;
+        if (is4k2kResolution() && mMediaRecorderRecording) {
+            Toast.makeText(mActivity, R.string.error_4k2k_snap_unsupported,
+                          Toast.LENGTH_SHORT).show();
+            return;
+        }
         takeASnapshot();
+    }
+
+    private boolean is4k2kResolution() {
+        if ((mProfile.videoFrameWidth == 4096 && mProfile.videoFrameHeight == 2160) ||
+            (mProfile.videoFrameWidth == 3840 &&  mProfile.videoFrameHeight == 2160)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void takeASnapshot() {

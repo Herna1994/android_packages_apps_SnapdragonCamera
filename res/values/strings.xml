@@ -685,4 +685,6 @@ CHAR LIMIT = NONE] -->
 
     <!--  String shown when setting the homepage wallpaper in the background [CHAR LIMIT=NONE] -->
     <string name="setting_wallpaper">Setting wallpaper</string>
+    <!--  Error message for 4kx2k video resolution livesnapshot -->
+    <string name="error_4k2k_snap_unsupported"> Live snapshot is not supported for 4k X 2k video resolution"</string>
  </resources>
