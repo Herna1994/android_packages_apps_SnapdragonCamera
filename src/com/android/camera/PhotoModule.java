@@ -847,7 +847,7 @@ public class PhotoModule
             mFaceDetectionStarted = false;
             mCameraDevice.setFaceDetectionCallback(null, null);
             mCameraDevice.stopFaceDetection();
-            mUI.clearFaces();
+            mUI.onStopFaceDetection();
         }
     }
 
