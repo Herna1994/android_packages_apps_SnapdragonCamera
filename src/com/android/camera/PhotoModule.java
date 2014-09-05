@@ -1572,6 +1572,16 @@ public class PhotoModule
         if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
             mUI.overrideSettings(CameraSettings.KEY_LONGSHOT, null);
         }
+
+        boolean enableQcomMiscSetting = SystemProperties.getBoolean("camera.qcom.misc", false);
+        if (enableQcomMiscSetting) {
+            mUI.overrideSettings(CameraSettings.KEY_ZSL, Parameters.ZSL_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_FACE_DETECTION, Parameters.FACE_DETECTION_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_TOUCH_AF_AEC, Parameters.TOUCH_AF_AEC_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_FOCUS_MODE, Parameters.FOCUS_MODE_AUTO);
+            mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, Parameters.FLASH_MODE_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_DENOISE, Parameters.DENOISE_OFF);
+        }
     }
 
     private void overrideCameraSettings(final String flashMode,
