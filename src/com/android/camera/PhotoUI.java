@@ -31,6 +31,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.hardware.Camera;
 import android.hardware.Camera.Face;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.TextureView;
@@ -77,6 +79,7 @@ public class PhotoUI implements PieListener,
     private CameraActivity mActivity;
     private PhotoController mController;
     private PreviewGestures mGestures;
+    private static final int UPDATE_TRANSFORM_MATRIX = 1;
 
     private View mRootView;
     private SurfaceTexture mSurfaceTexture;
@@ -133,6 +136,19 @@ public class PhotoUI implements PieListener,
     private LinearLayout listviewlayout;
     private LinearLayout listviewlayout2;
     private boolean mUIhidden = false;
+
+    private final Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+            case UPDATE_TRANSFORM_MATRIX:
+                setTransformMatrix(mPreviewWidth, mPreviewHeight);
+                break;
+            default:
+                break;
+            }
+        }
+    };
 
     public interface SurfaceTextureSizeChangedListener {
         public void onSurfaceTextureSizeChanged(int uncroppedWidth, int uncroppedHeight);
@@ -255,21 +271,29 @@ public class PhotoUI implements PieListener,
         mOrientationResize = orientation;
      }
 
-    public void setAspectRatio(float ratio) {
-        if (ratio <= 0.0) throw new IllegalArgumentException();
-
+    public void setAspectRatio(int width, int height) {
+        if (width == 0 || height == 0) {
+            Log.w(TAG, "Preview size should not be 0.");
+            return;
+        }
+        float ratio;
+        if (width > height) {
+            ratio = (float) width / height;
+        } else {
+            ratio = (float) height / width;
+        }
         if (mOrientationResize &&
                 mActivity.getResources().getConfiguration().orientation
                 != Configuration.ORIENTATION_PORTRAIT) {
             ratio = 1 / ratio;
         }
-
         if (mAspectRatio != ratio) {
             Log.d(TAG,"setAspectRatio() ratio["+ratio+"] mAspectRatio["+mAspectRatio+"]");
             mAspectRatio = ratio;
             mAspectRatioResize = true;
             mTextureView.requestLayout();
         }
+        mHandler.sendEmptyMessage(UPDATE_TRANSFORM_MATRIX);
     }
 
     public void setSurfaceTextureSizeChangedListener(SurfaceTextureSizeChangedListener listener) {
@@ -280,13 +304,14 @@ public class PhotoUI implements PieListener,
         mMatrix = mTextureView.getTransform(mMatrix);
         float scaleX = 1f, scaleY = 1f;
         float scaledTextureWidth, scaledTextureHeight;
+
         if (mOrientationResize){
-            scaledTextureWidth = height * mAspectRatio;
-            if(scaledTextureWidth > width){
-                scaledTextureWidth = width;
-                scaledTextureHeight = scaledTextureWidth / mAspectRatio;
-            } else {
+            if (width/mAspectRatio > height){
                 scaledTextureHeight = height;
+                scaledTextureWidth = (int)(height * mAspectRatio + 0.5f);
+            } else {
+                scaledTextureWidth = width;
+                scaledTextureHeight = (int)(width / mAspectRatio + 0.5f);
             }
         } else {
             if (width > height) {
