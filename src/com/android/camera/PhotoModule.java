@@ -2682,8 +2682,8 @@ public class PhotoModule
                 qcomUpdateAdvancedFeatures(ubiFocusOff,
                                            chromaFlashOff,
                                            optiZoomOff,
-                                           advancedFeature,
                                            fssrOff,
+                                           advancedFeature,
                                            multiTouchFocusOff);
             } else if (advancedFeature.equals(mActivity.getString(R.string.
                 pref_camera_advanced_feature_value_multi_touch_focus_on))) {
