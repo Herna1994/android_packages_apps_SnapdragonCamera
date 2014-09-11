@@ -642,6 +642,12 @@
     <string name="pref_camera_scenemode_entry_flowers">Flowers</string>
     <!-- Scene mode optimized for taking images of AR. -->
     <string name="pref_camera_scenemode_entry_ar">AR</string>
+    <!-- Scene mode optimized for taking images of Food. -->
+    <string name="pref_camera_scenemode_entry_food">Food</string>
+    <!-- Scene mode optimized for taking images of Text. -->
+    <string name="pref_camera_scenemode_entry_text">Text</string>
+    <!-- Scene mode optimized for taking images of child. -->
+    <string name="pref_camera_scenemode_entry_child">Child</string>
 
     <!-- Default auto scene detection setting. -->
     <string name="pref_camera_scenedetect_default" translatable="false">off</string>
