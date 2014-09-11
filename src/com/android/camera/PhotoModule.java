@@ -2265,7 +2265,7 @@ public class PhotoModule
                 }
                 return true;
         case KeyEvent.KEYCODE_DPAD_LEFT:
-            if ( (mCameraState != PREVIEW_STOPPED) &&
+            if ( (mCameraState != PREVIEW_STOPPED) && (mFocusManager != null) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
                 if (mbrightness > MINIMUM_BRIGHTNESS) {
@@ -2285,7 +2285,7 @@ public class PhotoModule
             }
             break;
            case KeyEvent.KEYCODE_DPAD_RIGHT:
-            if ( (mCameraState != PREVIEW_STOPPED) &&
+            if ( (mCameraState != PREVIEW_STOPPED) && (mFocusManager != null) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING) &&
                   (mFocusManager.getCurrentFocusState() != mFocusManager.STATE_FOCUSING_SNAP_ON_FINISH) ) {
                 if (mbrightness < MAXIMUM_BRIGHTNESS) {
