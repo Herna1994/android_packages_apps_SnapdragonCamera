@@ -1598,7 +1598,7 @@ public class PhotoModule
         }
         if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
             mUI.overrideSettings(CameraSettings.KEY_QC_HDR_NEED_1X,
-                    mActivity.getString(R.string.setting_off_value));
+                    mActivity.getString(R.string.setting_on_value));
         }
     }
 
