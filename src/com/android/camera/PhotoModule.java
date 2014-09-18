@@ -196,6 +196,7 @@ public class PhotoModule
     private static final String PERSIST_LONG_ENABLE = "persist.camera.longshot.enable";
     private static final String PERSIST_LONG_SAVE = "persist.camera.longshot.save";
     private static final String PERSIST_PREVIEW_RESTART = "persist.camera.feature.restart";
+    private static final String PERSIST_CAPTURE_ANIMATION = "persist.camera.capture.animate";
 
     private static final int MINIMUM_BRIGHTNESS = 0;
     private static final int MAXIMUM_BRIGHTNESS = 6;
@@ -326,6 +327,8 @@ public class PhotoModule
 
     // True if all the parameters needed to start preview is ready.
     private boolean mCameraPreviewParamsReady = false;
+
+    private boolean mAnimateCapture = true;
 
     private MediaSaveService.OnMediaSavedListener mOnMediaSavedListener =
             new MediaSaveService.OnMediaSavedListener() {
@@ -1186,7 +1189,9 @@ public class PhotoModule
                     else {
                         mUI.setDownFactor(4);
                     }
-                    mUI.animateCapture(jpegData, orientation, mMirror);
+                    if (mAnimateCapture) {
+                        mUI.animateCapture(jpegData, orientation, mMirror);
+                    }
                 }
             } else {
                 mJpegImageData = jpegData;
@@ -1439,11 +1444,11 @@ public class PhotoModule
                         new JpegPictureCallback(loc));
             }
         } else {
+            setCameraState(SNAPSHOT_IN_PROGRESS);
             mCameraDevice.takePicture(mHandler,
                     new ShutterCallback(!animateBefore),
                     mRawPictureCallback, mPostViewPictureCallback,
                     new JpegPictureCallback(loc));
-            setCameraState(SNAPSHOT_IN_PROGRESS);
         }
 
         mNamedImages.nameNewImage(mCaptureStartTime);
@@ -1571,6 +1576,16 @@ public class PhotoModule
         }
         if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode)) {
             mUI.overrideSettings(CameraSettings.KEY_LONGSHOT, null);
+        }
+
+        boolean enableQcomMiscSetting = SystemProperties.getBoolean("camera.qcom.misc", false);
+        if (enableQcomMiscSetting) {
+            mUI.overrideSettings(CameraSettings.KEY_ZSL, Parameters.ZSL_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_FACE_DETECTION, Parameters.FACE_DETECTION_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_TOUCH_AF_AEC, Parameters.TOUCH_AF_AEC_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_FOCUS_MODE, Parameters.FOCUS_MODE_AUTO);
+            mUI.overrideSettings(CameraSettings.KEY_FLASH_MODE, Parameters.FLASH_MODE_OFF);
+            mUI.overrideSettings(CameraSettings.KEY_DENOISE, Parameters.DENOISE_OFF);
         }
     }
 
@@ -2005,6 +2020,9 @@ public class PhotoModule
 
         mOnResumeTime = SystemClock.uptimeMillis();
         checkDisplayRotation();
+
+        mAnimateCapture = SystemProperties.getBoolean(
+                PERSIST_CAPTURE_ANIMATION, true);
     }
 
     @Override
@@ -2885,6 +2903,45 @@ public class PhotoModule
         List<Size> sizes = mParameters.getSupportedPreviewSizes();
         Size optimalSize = CameraUtil.getOptimalPreviewSize(mActivity, sizes,
                 (double) size.width / size.height);
+
+        // Read Preview Resolution from adb command
+        //value: 0(default) - Default value as per snapshot aspect ratio
+        //value: 1 - 640x480
+        //value: 2 - 720x480
+        //value: 3 - 1280x720
+        //value: 4 - 1920x1080
+        int preview_resolution = SystemProperties.getInt("persist.camera.preview.size", 0);
+        switch (preview_resolution) {
+            case 1: {
+                optimalSize.width = 640;
+                optimalSize.height = 480;
+                Log.v(TAG, "Preview resolution hardcoded to 640x480");
+                break;
+            }
+            case 2: {
+                optimalSize.width = 720;
+                optimalSize.height = 480;
+                Log.v(TAG, "Preview resolution hardcoded to 720x480");
+                break;
+            }
+            case 3: {
+                optimalSize.width = 1280;
+                optimalSize.height = 720;
+                Log.v(TAG, "Preview resolution hardcoded to 1280x720");
+                break;
+            }
+            case 4: {
+                optimalSize.width = 1920;
+                optimalSize.height = 1080;
+                Log.v(TAG, "Preview resolution hardcoded to 1920x1080");
+                break;
+            }
+            default: {
+                Log.v(TAG, "Preview resolution as per Snapshot aspect ratio");
+                break;
+            }
+        }
+
         Size original = mParameters.getPreviewSize();
         if (!original.equals(optimalSize)) {
             mParameters.setPreviewSize(optimalSize.width, optimalSize.height);
