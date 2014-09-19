@@ -33,7 +33,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.Toast;
 import android.util.Log;
-
+import android.os.SystemProperties;
 import java.util.Locale;
 
 public class PhotoMenu extends PieController
@@ -245,6 +245,8 @@ public class PhotoMenu extends PieController
      popup3.initialize(mPreferenceGroup, mOtherKeys3);
      mPopup3 = popup3;
 
+     updateQcomSettings();
+
      ListPreference pref = mPreferenceGroup.findPreference(
              CameraSettings.KEY_SCENE_MODE);
      String sceneMode = (pref != null) ? pref.getValue() : null;
@@ -416,6 +418,18 @@ public class PhotoMenu extends PieController
         }
 
         super.onSettingChanged(pref);
+    }
+
+    private void updateQcomSettings() {
+        boolean enableQcomMiscSetting = SystemProperties.getBoolean("camera.qcom.misc", false);
+        if (enableQcomMiscSetting) {
+            setPreference(CameraSettings.KEY_ZSL, Parameters.ZSL_OFF);
+            setPreference(CameraSettings.KEY_FACE_DETECTION, Parameters.FACE_DETECTION_OFF);
+            setPreference(CameraSettings.KEY_TOUCH_AF_AEC, Parameters.TOUCH_AF_AEC_OFF);
+            setPreference(CameraSettings.KEY_FOCUS_MODE, Parameters.FOCUS_MODE_AUTO);
+            setPreference(CameraSettings.KEY_FLASH_MODE, Parameters.FLASH_MODE_OFF);
+            setPreference(CameraSettings.KEY_DENOISE, Parameters.DENOISE_OFF);
+        }
     }
 
 }
