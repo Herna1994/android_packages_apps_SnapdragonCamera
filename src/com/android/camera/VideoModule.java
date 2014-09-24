@@ -926,6 +926,7 @@ public class VideoModule implements CameraModule,
     private void setDisplayOrientation() {
         mDisplayRotation = CameraUtil.getDisplayRotation(mActivity);
         mCameraDisplayOrientation = CameraUtil.getDisplayOrientation(mDisplayRotation, mCameraId);
+        mUI.setDisplayOrientation(mCameraDisplayOrientation);
         // Change the camera display orientation
         if (mCameraDevice != null) {
             mCameraDevice.setDisplayOrientation(mCameraDisplayOrientation);

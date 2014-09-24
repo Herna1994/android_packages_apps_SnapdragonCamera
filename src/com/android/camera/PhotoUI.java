@@ -36,6 +36,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.TextureView;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
@@ -135,7 +136,9 @@ public class PhotoUI implements PieListener,
     private final Object mSurfaceTextureLock = new Object();
     private LinearLayout listviewlayout;
     private LinearLayout listviewlayout2;
+    public LinearLayout listviewlayout3;
     private boolean mUIhidden = false;
+    private int mPreviewOrientation = -1;
 
     private final Handler mHandler = new Handler() {
         @Override
@@ -458,7 +461,8 @@ public class PhotoUI implements PieListener,
         mPreviewThumb.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                mActivity.gotoGallery();
+                if (!CameraControls.isAnimating())
+                    mActivity.gotoGallery();
             }
         });
         mMenuButton = mRootView.findViewById(R.id.menu);
@@ -537,7 +541,8 @@ public class PhotoUI implements PieListener,
         {
             @Override
             public void onClick(View v) {
-                doShutterAnimation();
+                if (!CameraControls.isAnimating())
+                    doShutterAnimation();
             }
         });
 
@@ -715,6 +720,14 @@ public class PhotoUI implements PieListener,
         if (!previewFocused && mCountDownView != null) mCountDownView.cancelCountDown();
     }
 
+    public ViewGroup getMenuLayout() {
+        return listviewlayout;
+    }
+
+    public ViewGroup getPreviewMenuLayout() {
+        return listviewlayout3;
+    }
+
     public void showPopup(ListView popup, int level, boolean animate) {
         hideUI();
 
@@ -742,7 +755,7 @@ public class PhotoUI implements PieListener,
         }
         if (animate) {
             if (level == 1)
-                mCustomPhotoMenu.animateSlideIn(popup);
+                mCustomPhotoMenu.animateSlideIn(popup, CameraActivity.SETTING_LIST_WIDTH_1, true);
             if (level == 2)
                 mCustomPhotoMenu.animateFadeIn(popup);
         } else
@@ -816,6 +829,30 @@ public class PhotoUI implements PieListener,
         }
     }
 
+    public boolean sendTouchToPreviewMenu(MotionEvent ev) {
+        return listviewlayout3.dispatchTouchEvent(ev);
+    }
+
+    public boolean sendTouchToMenu(MotionEvent ev) {
+        View v = listviewlayout.getChildAt(0);
+        return v.dispatchTouchEvent(ev);
+    }
+
+    public void dismissSceneModeMenu() {
+        if (listviewlayout3 != null) {
+            ((ViewGroup) mRootView).removeView(listviewlayout3);
+            listviewlayout3 = null;
+        }
+    }
+
+    public void removeSceneModeMenu() {
+        if (listviewlayout3 != null) {
+            ((ViewGroup) mRootView).removeView(listviewlayout3);
+            listviewlayout3 = null;
+        }
+        cleanupListview();
+    }
+
     public void onShowSwitcherPopup() {
         if (mPieRenderer != null && mPieRenderer.showsItems()) {
             mPieRenderer.hide();
@@ -826,9 +863,6 @@ public class PhotoUI implements PieListener,
         if (mOnScreenIndicators != null) {
             mOnScreenIndicators.setVisibility(show ? View.VISIBLE : View.GONE);
         }
-        if (mMenuButton != null) {
-            mMenuButton.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
     }
 
     public boolean collapseCameraControls() {
@@ -838,7 +872,7 @@ public class PhotoUI implements PieListener,
         // Remove all the popups/dialog boxes
         boolean ret = false;
         if (mCustomPhotoMenu != null) {
-            mCustomPhotoMenu.closeView();
+            mCustomPhotoMenu.closeAllView();
         }
         if (mPopup != null) {
             dismissAllPopup();
@@ -876,6 +910,12 @@ public class PhotoUI implements PieListener,
         if (mFaceView != null) {
             mFaceView.setDisplayOrientation(orientation);
         }
+        if ((mPreviewOrientation == -1 || mPreviewOrientation != orientation)
+                && mCustomPhotoMenu != null && mCustomPhotoMenu.isPreviewMenuBeingShown()) {
+            dismissSceneModeMenu();
+            mCustomPhotoMenu.addModeBack();
+        }
+        mPreviewOrientation = orientation;
     }
 
     // shutter button handling

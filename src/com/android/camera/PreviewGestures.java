@@ -160,6 +160,14 @@ public class PreviewGestures
         mCustomVideoMenu = menu;
     }
 
+    public CustomPhotoMenu getCustomPhotoMenu() {
+        return mCustomPhotoMenu;
+    }
+
+    public CustomVideoMenu getCustomVideoMenu() {
+        return mCustomVideoMenu;
+    }
+
     public boolean dispatchTouch(MotionEvent m) {
         if (setToFalse) {
             waitUntilNextDown = false;
@@ -196,6 +204,11 @@ public class PreviewGestures
                 }
                 return true;
             }
+            if (mCustomPhotoMenu.isPreviewMenuBeingShown()) {
+                waitUntilNextDown = true;
+                mCustomPhotoMenu.animateSlideOutPreviewMenu();
+                return true;
+            }
         }
 
         if (mCustomVideoMenu != null) {
@@ -204,6 +217,12 @@ public class PreviewGestures
                     waitUntilNextDown = true;
                     mCustomVideoMenu.closeView();
                 }
+                return true;
+            }
+
+            if (mCustomVideoMenu.isPreviewMenuBeingShown()) {
+                waitUntilNextDown = true;
+                mCustomVideoMenu.animateSlideOutPreviewMenu();
                 return true;
             }
         }

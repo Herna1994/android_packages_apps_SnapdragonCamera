@@ -33,6 +33,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.TextureView.SurfaceTextureListener;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLayoutChangeListener;
@@ -102,6 +103,7 @@ public class VideoUI implements PieRenderer.PieListener,
     private boolean mIsTimeLapse = false;
     private LinearLayout listviewlayout;
     private LinearLayout listviewlayout2;
+    public LinearLayout listviewlayout3;
     private CustomVideoMenu mCustomVideoMenu;
 
     private View mPreviewCover;
@@ -115,6 +117,8 @@ public class VideoUI implements PieRenderer.PieListener,
     private Matrix mMatrix = null;
     private final AnimationManager mAnimationManager;
     private boolean mUIhidden = false;
+    private int mPreviewOrientation = -1;
+
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -411,6 +415,10 @@ public class VideoUI implements PieRenderer.PieListener,
 
     public boolean collapseCameraControls() {
         boolean ret = false;
+        mSwitcher.closePopup();
+        if (mCustomVideoMenu != null) {
+            mCustomVideoMenu.closeAllView();
+        }
         if (mPopup != null) {
             dismissPopup(false);
             ret = true;
@@ -437,6 +445,15 @@ public class VideoUI implements PieRenderer.PieListener,
 
     public void initDisplayChangeListener() {
         ((CameraRootView) mRootView).setDisplayChangeListener(this);
+    }
+
+    public void setDisplayOrientation(int orientation) {
+        if ((mPreviewOrientation == -1 || mPreviewOrientation != orientation)
+                && mCustomVideoMenu != null && mCustomVideoMenu.isPreviewMenuBeingShown()) {
+            dismissSceneModeMenu();
+            mCustomVideoMenu.addModeBack();
+        }
+        mPreviewOrientation = orientation;
     }
 
     public void removeDisplayChangeListener() {
@@ -504,7 +521,7 @@ public class VideoUI implements PieRenderer.PieListener,
             @Override
             public void onClick(View v) {
                 // Do not allow navigation to filmstrip during video recording
-                if (!mRecordingStarted) {
+                if (!mRecordingStarted && !CameraControls.isAnimating()) {
                     mActivity.gotoGallery();
                 }
             }
@@ -616,6 +633,30 @@ public class VideoUI implements PieRenderer.PieListener,
         }
     }
 
+    public boolean sendTouchToPreviewMenu(MotionEvent ev) {
+        return listviewlayout3.dispatchTouchEvent(ev);
+    }
+
+    public boolean sendTouchToMenu(MotionEvent ev) {
+        View v = listviewlayout.getChildAt(0);
+        return v.dispatchTouchEvent(ev);
+    }
+
+    public void dismissSceneModeMenu() {
+        if (listviewlayout3 != null) {
+            ((ViewGroup) mRootView).removeView(listviewlayout3);
+            listviewlayout3 = null;
+        }
+    }
+
+    public void removeSceneModeMenu() {
+        if (listviewlayout3 != null) {
+            ((ViewGroup) mRootView).removeView(listviewlayout3);
+            listviewlayout3 = null;
+        }
+        cleanupListview();
+    }
+
     public void removeLevel2() {
         if (listviewlayout2 != null) {
             View v = listviewlayout2.getChildAt(0);
@@ -651,12 +692,20 @@ public class VideoUI implements PieRenderer.PieListener,
         }
         if (animate) {
             if (level == 1)
-                mCustomVideoMenu.animateSlideIn(popup);
+                mCustomVideoMenu.animateSlideIn(popup, CameraActivity.SETTING_LIST_WIDTH_1, true);
             if (level == 2)
                 mCustomVideoMenu.animateFadeIn(popup);
         }
         else
             popup.setAlpha(0.85f);
+    }
+
+    public ViewGroup getMenuLayout() {
+        return listviewlayout;
+    }
+
+    public ViewGroup getPreviewMenuLayout() {
+        return listviewlayout3;
     }
 
     public void showPopup(AbstractSettingPopup popup) {
@@ -777,9 +826,6 @@ public class VideoUI implements PieRenderer.PieListener,
             return;
         if (mOnScreenIndicators != null) {
             mOnScreenIndicators.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
-        if (mMenuButton != null) {
-            mMenuButton.setVisibility(show ? View.VISIBLE : View.GONE);
         }
     }
 

@@ -250,11 +250,19 @@
     <style name="MenuButton">
         <item name="android:layout_width">@dimen/menu_size</item>
         <item name="android:layout_height">@dimen/menu_size</item>
+    </style>
+    <style name="MenuButtonOuter">
+        <item name="android:layout_width">@dimen/menu_outer_size</item>
+        <item name="android:layout_height">@dimen/menu_outer_size</item>
         <item name="android:background">@drawable/bg_pressed_exit_fading</item>
     </style>
     <style name="ToggleButton">
         <item name="android:layout_width">@dimen/toggle_size</item>
         <item name="android:layout_height">@dimen/toggle_size</item>
+    </style>
+    <style name="ToggleButtonOuter">
+        <item name="android:layout_width">@dimen/toggle_outer_size</item>
+        <item name="android:layout_height">@dimen/toggle_outer_size</item>
         <item name="android:background">@drawable/bg_pressed_exit_fading</item>
     </style>
     <style name="MenuIndicator">
