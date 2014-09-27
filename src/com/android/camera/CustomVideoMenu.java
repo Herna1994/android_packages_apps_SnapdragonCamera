@@ -617,10 +617,12 @@ public class CustomVideoMenu extends MenuController
 
     public void hideUI() {
         mFrontBackSwitcher.setVisibility(View.INVISIBLE);
+        mFilterModeSwitcher.setVisibility(View.INVISIBLE);
     }
 
     public void showUI() {
         mFrontBackSwitcher.setVisibility(View.VISIBLE);
+        mFilterModeSwitcher.setVisibility(View.VISIBLE);
     }
 
     @Override
