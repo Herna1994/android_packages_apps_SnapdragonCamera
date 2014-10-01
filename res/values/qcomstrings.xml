@@ -702,5 +702,12 @@
      <string name="pref_hdr_mode_value_sensor">hdr-mode-sensor</string>
      <string name="pref_hdr_mode_value_multi_frame">hdr-mode-multiframe</string>
 
+    <!-- Continous shot enable message -->
+    <string name="longshot_enable_message">
+            Advance features are not supported in continuous shot mode</string>
+    <!-- Advance features enable message -->
+    <string name="advance_feature_enable_msg">
+            Continuous shot is not supported when advance features are enabled</string>
+
 </resources>
 
