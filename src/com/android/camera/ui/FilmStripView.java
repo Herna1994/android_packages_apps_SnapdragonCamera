@@ -1823,7 +1823,7 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
     }
 
     public boolean checkSendToModeView(MotionEvent ev) {
-        if (sendToPreviewMenu || sendToMenu)
+        if (sendToPreviewMenu || sendToMenu || mPreviewGestures == null)
             return true;
         CustomPhotoMenu pMenu = mPreviewGestures.getCustomPhotoMenu();
         CustomVideoMenu vMenu = mPreviewGestures.getCustomVideoMenu();
@@ -1865,6 +1865,9 @@ public class FilmStripView extends ViewGroup implements BottomControlsListener {
     }
 
     public boolean sendToModeView(MotionEvent ev) {
+        if (mPreviewGestures == null) {
+            return false;
+        }
         if (reset) {
             sendToPreviewMenu = false;
             sendToMenu = false;
