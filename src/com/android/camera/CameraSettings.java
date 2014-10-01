@@ -146,6 +146,50 @@ public class CameraSettings {
     private static final String VIDEO_QUALITY_YOUTUBE = "youtube";
 
 
+    //manual 3A keys and parameter strings
+    public static final String KEY_MANUAL_EXPOSURE = "pref_camera_manual_exp_key";
+    public static final String KEY_MANUAL_WB = "pref_camera_manual_wb_key";
+    public static final String KEY_MANUAL_FOCUS = "pref_camera_manual_focus_key";
+
+    public static final String KEY_MANUAL_EXPOSURE_MODES = "manual-exp-modes";
+    public static final String KEY_MANUAL_WB_MODES = "manual-wb-modes";
+    public static final String KEY_MANUAL_FOCUS_MODES = "manual-focus-modes";
+    //manual exposure
+    public static final String KEY_MIN_EXPOSURE_TIME = "min-exposure-time";
+    public static final String KEY_MAX_EXPOSURE_TIME = "max-exposure-time";
+    public static final String KEY_EXPOSURE_TIME = "exposure-time";
+    public static final String KEY_MIN_ISO = "min-iso";
+    public static final String KEY_MAX_ISO = "max-iso";
+    public static final String KEY_CONTINUOUS_ISO = "continuous-iso";
+    public static final String KEY_MANUAL_ISO = "manual";
+    public static final String KEY_CURRENT_ISO = "cur-iso";
+    public static final String KEY_CURRENT_EXPOSURE_TIME = "cur-exposure-time";
+
+    //manual WB
+    public static final String KEY_MIN_WB_GAIN = "min-wb-gain";
+    public static final String KEY_MAX_WB_GAIN = "max-wb-gain";
+    public static final String KEY_MANUAL_WB_GAINS = "manual-wb-gains";
+    public static final String KEY_MIN_WB_CCT = "min-wb-cct";
+    public static final String KEY_MAX_WB_CCT = "max-wb-cct";
+    public static final String KEY_MANUAL_WB_CCT = "wb-manual-cct";
+    public static final String KEY_MANUAL_WHITE_BALANCE = "manual";
+    public static final String KEY_MANUAL_WB_TYPE = "manual-wb-type";
+    public static final String KEY_MANUAL_WB_VALUE = "manual-wb-value";
+
+    //manual focus
+    public static final String KEY_MIN_FOCUS_SCALE = "min-focus-pos-ratio";
+    public static final String KEY_MAX_FOCUS_SCALE = "max-focus-pos-ratio";
+    public static final String KEY_MIN_FOCUS_DIOPTER = "min-focus-pos-diopter";
+    public static final String KEY_MAX_FOCUS_DIOPTER = "max-focus-pos-diopter";
+    public static final String KEY_MANUAL_FOCUS_TYPE = "manual-focus-pos-type";
+    public static final String KEY_MANUAL_FOCUS_POSITION = "manual-focus-position";
+    public static final String KEY_MANUAL_FOCUS_SCALE = "cur-focus-scale";
+    public static final String KEY_MANUAL_FOCUS_DIOPTER = "cur-focus-diopter";
+
+    public static final String KEY_QC_SUPPORTED_MANUAL_FOCUS_MODES = "manual-focus-modes";
+    public static final String KEY_QC_SUPPORTED_MANUAL_EXPOSURE_MODES = "manual-exposure-modes";
+    public static final String KEY_QC_SUPPORTED_MANUAL_WB_MODES = "manual-wb-modes";
+
     public static final String EXPOSURE_DEFAULT_VALUE = "0";
 
     public static final int CURRENT_VERSION = 5;
@@ -354,6 +398,9 @@ public class CameraSettings {
         ListPreference hfr = group.findPreference(KEY_VIDEO_HIGH_FRAME_RATE);
         ListPreference longShot = group.findPreference(KEY_LONGSHOT);
         ListPreference auto_hdr = group.findPreference(KEY_AUTO_HDR);
+        ListPreference manualFocus = group.findPreference(KEY_MANUAL_FOCUS);
+        ListPreference manualExposure = group.findPreference(KEY_MANUAL_EXPOSURE);
+        ListPreference manualWB = group.findPreference(KEY_MANUAL_WB);
 
         if (touchAfAec != null) {
             filterUnsupportedOptions(group,
@@ -443,6 +490,21 @@ public class CameraSettings {
         }
         if (longShot!= null && !isLongshotSupported(mParameters)) {
             removePreference(group, longShot.getKey());
+        }
+
+        if (manualFocus != null) {
+            filterUnsupportedOptions(group,
+                    manualFocus, getSupportedManualFocusModes(mParameters));
+        }
+
+        if (manualWB != null) {
+            filterUnsupportedOptions(group,
+                    manualWB, getSupportedManualWBModes(mParameters));
+        }
+
+        if (manualExposure != null) {
+            filterUnsupportedOptions(group,
+                    manualExposure, getSupportedManualExposureModes(mParameters));
         }
     }
     private void initPreference(PreferenceGroup group) {
@@ -922,4 +984,29 @@ public class CameraSettings {
         }
         return ret;
     }
+
+    public static List<String> getSupportedManualExposureModes(Parameters params) {
+        String str = params.get(KEY_QC_SUPPORTED_MANUAL_EXPOSURE_MODES);
+        if (str == null) {
+            return null;
+        }
+        return split(str);
+    }
+
+    public static List<String> getSupportedManualFocusModes(Parameters params) {
+        String str = params.get(KEY_QC_SUPPORTED_MANUAL_FOCUS_MODES);
+        if (str == null) {
+            return null;
+        }
+        return split(str);
+    }
+
+    public static List<String> getSupportedManualWBModes(Parameters params) {
+        String str = params.get(KEY_QC_SUPPORTED_MANUAL_WB_MODES);
+        if (str == null) {
+            return null;
+        }
+        return split(str);
+    }
+
 }
