@@ -395,7 +395,6 @@ public class PhotoMenu extends PieController
                 Toast.makeText(mActivity, R.string.hdr_enable_message, Toast.LENGTH_LONG).show();
             }
             setPreference(CameraSettings.KEY_SCENE_MODE, Parameters.SCENE_MODE_AUTO);
-            setPreference(CameraSettings.KEY_ZSL, mSettingOff);
         } else if (notSame(pref, CameraSettings.KEY_SCENE_MODE, Parameters.SCENE_MODE_AUTO)) {
             ListPreference hdrPref =
                     mPreferenceGroup.findPreference(CameraSettings.KEY_CAMERA_HDR);
@@ -416,9 +415,6 @@ public class PhotoMenu extends PieController
             }
         }
 
-        if (notSame(pref,CameraSettings.KEY_ZSL,mSettingOff)){
-            setPreference(CameraSettings.KEY_CAMERA_HDR, mSettingOff);
-        }
         super.onSettingChanged(pref);
     }
 
