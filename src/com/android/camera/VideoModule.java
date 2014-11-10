@@ -175,6 +175,8 @@ public class VideoModule implements CameraModule,
     private final Handler mHandler = new MainHandler();
     private VideoUI mUI;
     private CameraProxy mCameraDevice;
+    private static final String KEY_PREVIEW_FORMAT = "preview-format";
+    private static final String QC_FORMAT_NV12_VENUS = "nv12-venus";
 
     // The degrees of the device rotated clockwise from its natural orientation.
     private int mOrientation = OrientationEventListener.ORIENTATION_UNKNOWN;
@@ -821,13 +823,30 @@ public class VideoModule implements CameraModule,
        }
     }
 
+    private boolean is1080pEnabled() {
+       if (mProfile.quality == CamcorderProfile.QUALITY_1080P) {
+           return true;
+       } else {
+           return false;
+       }
+    }
+
+    private boolean is720pEnabled() {
+       if (mProfile.quality == CamcorderProfile.QUALITY_720P) {
+           return true;
+       } else {
+           return false;
+       }
+    }
+
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void getDesiredPreviewSize() {
         if (mCameraDevice == null) {
             return;
         }
         mParameters = mCameraDevice.getParameters();
-        if (mParameters.getSupportedVideoSizes() == null) {
+        if (mParameters.getSupportedVideoSizes() == null || is4KEnabled()
+                || is1080pEnabled() || is720pEnabled()) {
             mDesiredPreviewWidth = mProfile.videoFrameWidth;
             mDesiredPreviewHeight = mProfile.videoFrameHeight;
         } else { // Driver supports separates outputs for preview and video.
@@ -1933,6 +1952,12 @@ public class VideoModule implements CameraModule,
             Log.v(TAG, "preview format set to YV12");
             mParameters.setPreviewFormat (ImageFormat.YV12);
         }
+
+       // if 4K or 1080p 0r 720p recoding is enabled, set preview format to NV12_VENUS
+       if (is4KEnabled() || is1080pEnabled() || is720pEnabled()) {
+           Log.v(TAG, "4K or 1080p 0r 720p enabled and so, preview format set to NV12_VENUS");
+           mParameters.set(KEY_PREVIEW_FORMAT, QC_FORMAT_NV12_VENUS);
+       }
 
         // Set High Frame Rate.
         String HighFrameRate = mPreferences.getString(
