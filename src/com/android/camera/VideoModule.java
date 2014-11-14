@@ -2394,9 +2394,9 @@ public class VideoModule implements CameraModule,
         @Override
         public void onPictureTaken(byte [] jpegData, CameraProxy camera) {
             Log.v(TAG, "onPictureTaken");
+            showVideoSnapshotUI(false);
             if(!mSnapshotInProgress || mPaused || mCameraDevice == null) return;
             mSnapshotInProgress = false;
-            showVideoSnapshotUI(false);
             storeImage(jpegData, mLocation);
         }
     }
