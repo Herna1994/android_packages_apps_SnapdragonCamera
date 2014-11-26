@@ -2600,7 +2600,8 @@ public class PhotoModule
     /** This can run on a background thread, so don't do UI updates here. Post any
              view updates to MainHandler or do it on onPreviewStarted() .  */
     private void startPreview() {
-        if (mPaused || (mCameraDevice == null) || (null == mFocusManager)) {
+        if (mPaused || (mCameraDevice == null) || (null == mFocusManager) ||
+                (mParameters == null)) {
             return;
         }
 
