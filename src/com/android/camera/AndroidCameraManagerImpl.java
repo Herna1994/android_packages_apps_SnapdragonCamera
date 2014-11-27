@@ -731,15 +731,9 @@ class AndroidCameraManagerImpl implements CameraManager {
         @Override
         public void onShutter() {
             final android.hardware.Camera currentCamera = mCamera.getCamera();
-
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    if (currentCamera.equals(mCamera.getCamera())) {
-                        mCallback.onShutter(mCamera);
-                    }
+                if (currentCamera.equals(mCamera.getCamera())) {
+                    mCallback.onShutter(mCamera);
                 }
-            });
         }
     }
 
