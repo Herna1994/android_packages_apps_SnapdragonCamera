@@ -2638,6 +2638,7 @@ public class PhotoModule
         }
         setCameraState(PREVIEW_STOPPED);
         if (mFocusManager != null) mFocusManager.onPreviewStopped();
+        stopFaceDetection();
     }
 
     @SuppressWarnings("deprecation")
