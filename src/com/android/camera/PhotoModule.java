@@ -2005,7 +2005,8 @@ public class PhotoModule
     public void onShutterButtonFocus(boolean pressed) {
         if (mPaused || mUI.collapseCameraControls()
                 || (mCameraState == SNAPSHOT_IN_PROGRESS)
-                || (mCameraState == PREVIEW_STOPPED)) return;
+                || (mCameraState == PREVIEW_STOPPED)
+                || (null == mFocusManager)) return;
 
         synchronized(mCameraDevice) {
            if (mCameraState == LONGSHOT) {
@@ -2043,7 +2044,8 @@ public class PhotoModule
     public void onShutterButtonClick() {
         if (mPaused || mUI.collapseCameraControls()
                 || (mCameraState == SWITCHING_CAMERA)
-                || (mCameraState == PREVIEW_STOPPED)) return;
+                || (mCameraState == PREVIEW_STOPPED)
+                || (null == mFocusManager)) return;
 
         // Do not take the picture if there is not enough storage.
         if (mActivity.getStorageSpaceBytes() <= Storage.LOW_STORAGE_THRESHOLD_BYTES) {
