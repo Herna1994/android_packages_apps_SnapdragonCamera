@@ -2403,7 +2403,8 @@ public class PhotoModule
         mParameters.set("long-shot", longshot_enable);
 
         if (Parameters.SCENE_MODE_AUTO.equals(mSceneMode) ||
-            CameraUtil.SCENE_MODE_HDR.equals(mSceneMode)) {
+            CameraUtil.SCENE_MODE_HDR.equals(mSceneMode) ||
+            Parameters.SCENE_MODE_ASD.equals(mSceneMode)) {
             // Set Touch AF/AEC parameter.
             String touchAfAec = mPreferences.getString(
                  CameraSettings.KEY_TOUCH_AF_AEC,
@@ -2860,6 +2861,8 @@ public class PhotoModule
         String onValue = mActivity.getString(R.string.setting_on_value);
         String hdr = mPreferences.getString(CameraSettings.KEY_CAMERA_HDR,
                 mActivity.getString(R.string.pref_camera_hdr_default));
+        String auto_hdr = mPreferences.getString(CameraSettings.KEY_AUTO_HDR,
+                mActivity.getString(R.string.pref_camera_hdr_default));
         String hdrPlus = mPreferences.getString(CameraSettings.KEY_CAMERA_HDR_PLUS,
                 mActivity.getString(R.string.pref_camera_hdr_plus_default));
         boolean hdrOn = onValue.equals(hdr);
@@ -2879,9 +2882,13 @@ public class PhotoModule
                     mParameters = mCameraDevice.getParameters();
                 }
             } else {
-                mSceneMode = mPreferences.getString(
-                        CameraSettings.KEY_SCENE_MODE,
-                        mActivity.getString(R.string.pref_camera_scenemode_default));
+                if (auto_hdr.equals("enable")) {
+                    mSceneMode = Parameters.SCENE_MODE_ASD;
+                } else {
+                    mSceneMode = mPreferences.getString(
+                     CameraSettings.KEY_SCENE_MODE,
+                     mActivity.getString(R.string.pref_camera_scenemode_default));
+                }
             }
         }
         if (CameraUtil.isSupported(mSceneMode, mParameters.getSupportedSceneModes())) {
