@@ -92,7 +92,6 @@ public class RotationTask extends AsyncTask<LocalData, Void, LocalData> {
 
         String filePath = imageData.getPath();
         ContentValues values = new ContentValues();
-        boolean success = false;
         int newOrientation = 0;
         if (imageData.getMimeType().equalsIgnoreCase(LocalData.MIME_TYPE_JPEG)) {
             ExifInterface exifInterface = new ExifInterface();
@@ -104,13 +103,13 @@ public class RotationTask extends AsyncTask<LocalData, Void, LocalData> {
                 exifInterface.setTag(tag);
                 try {
                     // Note: This only works if the file already has some EXIF.
-                    exifInterface.forceRewriteExif(filePath);
                     long fileSize = new File(filePath).length();
                     values.put(Images.Media.SIZE, fileSize);
                     newOrientation = finalRotationDegrees;
-                    success = true;
+                    exifInterface.forceRewriteExif(filePath);
                 } catch (FileNotFoundException e) {
                     Log.w(TAG, "Cannot find file to set exif: " + filePath);
+                    return null;
                 } catch (IOException e) {
                     Log.w(TAG, "Cannot set exif data: " + filePath);
                 }
@@ -120,24 +119,22 @@ public class RotationTask extends AsyncTask<LocalData, Void, LocalData> {
         }
 
         PhotoData result = null;
-        if (success) {
-            // MediaStore using SQLite is thread safe.
-            values.put(Images.Media.ORIENTATION, finalRotationDegrees);
-            mContext.getContentResolver().update(imageData.getContentUri(),
-                    values, null, null);
-            double[] latLong = data.getLatLong();
-            double latitude = 0;
-            double longitude = 0;
-            if (latLong != null) {
-                latitude = latLong[0];
-                longitude = latLong[1];
-            }
-
-            result = new PhotoData(data.getContentId(), data.getTitle(),
-                    data.getMimeType(), data.getDateTaken(), data.getDateModified(),
-                    data.getPath(), newOrientation, imageData.getWidth(),
-                    imageData.getHeight(), data.getSizeInBytes(), latitude, longitude);
+        // MediaStore using SQLite is thread safe.
+        values.put(Images.Media.ORIENTATION, finalRotationDegrees);
+        mContext.getContentResolver().update(imageData.getContentUri(),
+                values, null, null);
+        double[] latLong = data.getLatLong();
+        double latitude = 0;
+        double longitude = 0;
+        if (latLong != null) {
+            latitude = latLong[0];
+            longitude = latLong[1];
         }
+
+        result = new PhotoData(data.getContentId(), data.getTitle(),
+                data.getMimeType(), data.getDateTaken(), data.getDateModified(),
+                data.getPath(), newOrientation, imageData.getWidth(),
+                imageData.getHeight(), data.getSizeInBytes(), latitude, longitude);
 
         return result;
     }
