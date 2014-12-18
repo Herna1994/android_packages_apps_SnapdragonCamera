@@ -2045,7 +2045,8 @@ public class PhotoModule
         if (mPaused || mUI.collapseCameraControls()
                 || (mCameraState == SWITCHING_CAMERA)
                 || (mCameraState == PREVIEW_STOPPED)
-                || (null == mFocusManager)) return;
+                || (null == mFocusManager)
+                || (null == mUI.getSurfaceTexture())) return;
 
         // Do not take the picture if there is not enough storage.
         if (mActivity.getStorageSpaceBytes() <= Storage.LOW_STORAGE_THRESHOLD_BYTES) {
