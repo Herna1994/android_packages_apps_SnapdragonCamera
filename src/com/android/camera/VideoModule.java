@@ -28,6 +28,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.SurfaceTexture;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
@@ -51,7 +52,6 @@ import android.provider.MediaStore.Video;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.OrientationEventListener;
-import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
@@ -686,10 +686,8 @@ public class VideoModule implements CameraModule,
 
         if (stop) {
             onStopVideoRecording();
-            mUI.showUIafterRecording();
         } else {
             startVideoRecording();
-            mUI.hideUIwhileRecording();
         }
 
         // Keep the shutter button disabled when in video capture intent
@@ -1024,7 +1022,6 @@ public class VideoModule implements CameraModule,
     private void setDisplayOrientation() {
         mDisplayRotation = CameraUtil.getDisplayRotation(mActivity);
         mCameraDisplayOrientation = CameraUtil.getDisplayOrientation(mDisplayRotation, mCameraId);
-        mUI.setDisplayOrientation(mCameraDisplayOrientation);
         // Change the camera display orientation
         if (mCameraDevice != null) {
             mCameraDevice.setDisplayOrientation(mCameraDisplayOrientation);
@@ -1057,11 +1054,9 @@ public class VideoModule implements CameraModule,
         Log.v(TAG, "startPreview");
         mStartPrevPending = true;
 
-        SurfaceHolder sh = null;
-        Log.v(TAG, "startPreview: SurfaceHolder (MDP path)");
-        sh = mUI.getSurfaceHolder();
-
-        if (!mPreferenceRead || mPaused == true || mCameraDevice == null) {
+        SurfaceTexture surfaceTexture = mUI.getSurfaceTexture();
+        if (!mPreferenceRead || surfaceTexture == null || mPaused == true ||
+                mCameraDevice == null) {
             mStartPrevPending = false;
             return;
         }
@@ -1076,7 +1071,7 @@ public class VideoModule implements CameraModule,
         setCameraParameters();
 
         try {
-            mCameraDevice.setPreviewDisplay(sh);
+            mCameraDevice.setPreviewTexture(surfaceTexture);
             mCameraDevice.startPreview();
             mPreviewing = true;
             onPreviewStarted();
@@ -1181,10 +1176,10 @@ public class VideoModule implements CameraModule,
         if (mMediaRecorderRecording) {
             onStopVideoRecording();
             return true;
-        } else if (mUI.hideSwitcherPopup()) {
+        } else if (mUI.hidePieRenderer()) {
             return true;
         } else {
-            return mUI.onBackPressed();
+            return mUI.removeTopLevelPopup();
         }
     }
 
