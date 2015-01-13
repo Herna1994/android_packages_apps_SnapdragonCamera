@@ -1,5 +1,5 @@
 <!--
-    Copyright (c) 2012-2013, The Linux Foundation. All rights reserved.
+    Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 
     Not a Contribution.
 
@@ -630,6 +630,7 @@
         <item>@string/pref_camera_advanced_feature_entry_FSSR</item>
         <item>@string/pref_camera_advanced_feature_entry_trueportrait</item>
         <item>@string/pref_camera_advanced_feature_entry_multi_touch_focus</item>
+        <item>@string/pref_camera_advanced_feature_entry_stillmore</item>
     </string-array>
 
     <string-array name="pref_camera_advanced_features_entryvalues" translatable="false">
@@ -641,6 +642,7 @@
         <item>@string/pref_camera_advanced_feature_value_FSSR_on</item>
         <item>@string/pref_camera_advanced_feature_value_trueportrait_on</item>
         <item>@string/pref_camera_advanced_feature_value_multi_touch_focus_on</item>
+        <item>@string/pref_camera_advanced_feature_value_stillmore_on</item>
     </string-array>
 
     <!-- Camera Preferences Long Shot dialog box entries -->
