@@ -2581,7 +2581,7 @@ public class PhotoModule
     /** This can run on a background thread, so don't do UI updates here. Post any
              view updates to MainHandler or do it on onPreviewStarted() .  */
     private void startPreview() {
-        if (mPaused || mCameraDevice == null) {
+        if (mPaused || (mCameraDevice == null) || (null == mFocusManager)) {
             return;
         }
 
@@ -3508,7 +3508,7 @@ public class PhotoModule
     // the subsets actually need updating. The PREFERENCE set needs extra
     // locking because the preference can be changed from GLThread as well.
     private void setCameraParameters(int updateSet) {
-        if (mCameraDevice == null) {
+        if ((mCameraDevice == null) || (null == mFocusManager)) {
             return;
         }
         synchronized (mCameraDevice) {
