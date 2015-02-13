@@ -358,15 +358,27 @@ public class FaceView extends View
 
                         } else if (face.getSmileDegree() <
                             smile_threashold_small_smile) {
-                            int rotation_mouth = mDisplayOrientation -
-                                    face.getRollDirection();
-                            if (0 > rotation_mouth) {
-                                rotation_mouth = 360 + rotation_mouth;
-                            }
+                            int rotation_mouth;
 
+                            // Rotation is applied after mirror transformation
+                            // Set rotation direction based on mirror flag
+                            if (mMirror) {
+                                rotation_mouth = mDisplayOrientation -
+                                    face.getRollDirection();
+                                if (0 > rotation_mouth) {
+                                    rotation_mouth = 360 + rotation_mouth;
+                                }
+                            } else {
+                                rotation_mouth = mDisplayOrientation +
+                                    face.getRollDirection();
+                                if (360 < rotation_mouth) {
+                                    rotation_mouth = rotation_mouth - 360;
+                                }
+                            }
                             mRect.set(face.mouth.x-delta_x,
                                 face.mouth.y-delta_y, face.mouth.x+delta_x,
                                 face.mouth.y+delta_y);
+
                             mMatrix.mapRect(mRect);
                             mRect.offset(dx, dy);
                             canvas.drawArc(mRect, rotation_mouth,
