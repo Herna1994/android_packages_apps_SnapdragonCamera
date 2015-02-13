@@ -303,37 +303,22 @@ public class FaceView extends View
                                 (-length) + 0.5);
 
                         if (face.getLeftEyeBlinkDegree() < blink_threshold) {
-                            if ((mDisplayOrientation == 90) ||
-                                    (mDisplayOrientation == 270)) {
-                                point[0] = face.leftEye.x;
-                                point[1] = face.leftEye.y;
-                                point[2] = face.leftEye.x + gazeRollX;
-                                point[3] = face.leftEye.y + gazeRollY;
-                            } else {
-                                point[0] = face.leftEye.x;
-                                point[1] = face.leftEye.y;
-                                point[2] = face.leftEye.x + gazeRollY;
-                                point[3] = face.leftEye.y + gazeRollX;
-                            }
+                            point[0] = face.leftEye.x;
+                            point[1] = face.leftEye.y;
+                            point[2] = face.leftEye.x + gazeRollX;
+                            point[3] = face.leftEye.y + gazeRollY;
+
                             mMatrix.mapPoints (point);
                             canvas.drawLine(point[0] +dx, point[1] + dy,
                                 point[2] + dx, point[3] +dy, mPaint);
                         }
 
                         if (face.getRightEyeBlinkDegree() < blink_threshold) {
-                            if ((mDisplayOrientation == 90) ||
-                                    (mDisplayOrientation == 270)) {
-                                point[0] = face.rightEye.x;
-                                point[1] = face.rightEye.y;
-                                point[2] = face.rightEye.x + gazeRollX;
-                                point[3] = face.rightEye.y + gazeRollY;
-                            } else {
-                                point[0] = face.rightEye.x;
-                                point[1] = face.rightEye.y;
-                                point[2] = face.rightEye.x + gazeRollY;
-                                point[3] = face.rightEye.y + gazeRollX;
+                            point[0] = face.rightEye.x;
+                            point[1] = face.rightEye.y;
+                            point[2] = face.rightEye.x + gazeRollX;
+                            point[3] = face.rightEye.y + gazeRollY;
 
-                            }
                             mMatrix.mapPoints (point);
                             canvas.drawLine(point[0] + dx, point[1] + dy,
                                 point[2] + dx, point[3] + dy, mPaint);
