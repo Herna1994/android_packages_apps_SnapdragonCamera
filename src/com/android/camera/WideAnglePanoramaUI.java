@@ -278,6 +278,7 @@ public class WideAnglePanoramaUI implements
         mReview.setImageBitmap(bitmap);
         mCaptureLayout.setVisibility(View.GONE);
         mReviewLayout.setVisibility(View.VISIBLE);
+        mSavingProgressBar.requestLayout();
     }
 
     public void onConfigurationChanged(
