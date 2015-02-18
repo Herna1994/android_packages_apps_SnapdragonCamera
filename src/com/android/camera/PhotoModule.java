@@ -1510,6 +1510,10 @@ public class PhotoModule
             animateAfterShutter();
         }
 
+        if (mCameraState == LONGSHOT) {
+            mCameraDevice.setLongshot(true);
+        }
+
         // Set rotation and gps data.
         int orientation;
         // We need to be consistent with the framework orientation (i.e. the
@@ -2129,7 +2133,6 @@ public class PhotoModule
                     return;
                 }
                 mLongshotActive = true;
-                mCameraDevice.setLongshot(true);
                 setCameraState(PhotoController.LONGSHOT);
                 mFocusManager.doSnap();
             }
