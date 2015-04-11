@@ -1876,10 +1876,9 @@ public class PhotoModule
         if (orientation == OrientationEventListener.ORIENTATION_UNKNOWN) return;
         int oldOrientation = mOrientation;
         mOrientation = CameraUtil.roundOrientation(orientation, mOrientation);
-        if (oldOrientation != mOrientation &&
-            oldOrientation != OrientationEventListener.ORIENTATION_UNKNOWN) {
-            Log.v(TAG, "onOrientationChanged, update parameters");
-            if (mParameters != null && mCameraDevice != null) {
+        if (oldOrientation != mOrientation) {
+            if (mParameters != null && mCameraDevice != null && mCameraState == IDLE) {
+                Log.v(TAG, "onOrientationChanged, update parameters");
                 setFlipValue();
                 mCameraDevice.setParameters(mParameters);
             }
@@ -2626,6 +2625,7 @@ public class PhotoModule
             Log.w(TAG, "startPreview: parameters for preview are not ready.");
             return;
         }
+        mErrorCallback.setActivity(mActivity);
         mCameraDevice.setErrorCallback(mErrorCallback);
         // ICS camera frameworks has a bug. Face detection state is not cleared 1589
         // after taking a picture. Stop the preview to work around it. The bug
