@@ -429,7 +429,7 @@ public class VideoModule implements CameraModule,
         mActivity = activity;
         mUI = new VideoUI(activity, this, root);
         mPreferences = new ComboPreferences(mActivity);
-        CameraSettings.upgradeGlobalPreferences(mPreferences.getGlobal());
+        CameraSettings.upgradeGlobalPreferences(mPreferences.getGlobal(), activity);
         mCameraId = getPreferredCameraId(mPreferences);
 
         mPreferences.setLocalId(mActivity, mCameraId);
@@ -780,10 +780,16 @@ public class VideoModule implements CameraModule,
                         null);
         if (videoQuality == null) {
             mParameters = mCameraDevice.getParameters();
+            String defaultQuality = mActivity.getResources().getString(
+                    R.string.pref_video_quality_default);
+            if (!defaultQuality.equals("")){
+                videoQuality = defaultQuality;
+            } else {
             // check for highest quality supported
             videoQuality = CameraSettings.getSupportedHighestVideoQuality(
                     mCameraId, mParameters);
-            mPreferences.edit().putString(CameraSettings.KEY_VIDEO_QUALITY, videoQuality);
+            }
+            mPreferences.edit().putString(CameraSettings.KEY_VIDEO_QUALITY, videoQuality).apply();
         }
         int quality = CameraSettings.VIDEO_QUALITY_TABLE.get(videoQuality);
 

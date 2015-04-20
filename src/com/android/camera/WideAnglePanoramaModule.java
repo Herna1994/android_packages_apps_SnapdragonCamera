@@ -291,7 +291,7 @@ public class WideAnglePanoramaModule
         mDialogWaitingPreviousString = appRes.getString(R.string.pano_dialog_waiting_previous);
 
         mPreferences = new ComboPreferences(mActivity);
-        CameraSettings.upgradeGlobalPreferences(mPreferences.getGlobal());
+        CameraSettings.upgradeGlobalPreferences(mPreferences.getGlobal(), activity);
         mLocationManager = new LocationManager(mActivity, null);
 
         mMainHandler = new Handler() {
@@ -932,7 +932,7 @@ public class WideAnglePanoramaModule
 
     @Override
     public void onSwitchSavePath() {
-        mPreferences.edit().putString(CameraSettings.KEY_CAMERA_SAVEPATH, "1").apply();
+        mPreferences.getGlobal().edit().putString(CameraSettings.KEY_CAMERA_SAVEPATH, "1").apply();
         RotateTextToast.makeText(mActivity, R.string.on_switch_save_path_to_sdcard,
                 Toast.LENGTH_SHORT).show();
     }
