@@ -638,6 +638,7 @@ public class PhotoModule
         openCameraCommon();
         resizeForPreviewAspectRatio();
         updateFocusManager(mUI);
+        mActivity.updateStorageSpaceAndHint();
     }
 
     private void switchCamera() {
@@ -2202,12 +2203,6 @@ public class PhotoModule
             Log.v(TAG, "On resume.");
             onResumeTasks();
         }
-        mHandler.post(new Runnable(){
-            @Override
-            public void run(){
-                mActivity.updateStorageSpaceAndHint();
-            }
-        });
     }
 
     private void onResumeTasks() {
