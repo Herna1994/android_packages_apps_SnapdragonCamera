@@ -18,7 +18,6 @@ package com.android.camera;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -41,6 +40,7 @@ import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -204,7 +204,6 @@ public class PhotoModule
 
     private static final String sTempCropFilename = "crop-temp";
 
-    private ContentProviderClient mMediaProviderClient;
     private boolean mFaceDetectionStarted = false;
 
     private static final String PERSIST_LONG_ENABLE = "persist.camera.longshot.enable";
@@ -238,11 +237,8 @@ public class PhotoModule
     // Used for check memory status for longshot mode
     // Currently, this cancel threshold selection is based on test experiments,
     // we can change it based on memory status or other requirements.
-    private static final int LONGSHOT_CANCEL_THRESHOLD = 40;
-    private MemInfoReader mMemInfoReader = new MemInfoReader();
-    private ActivityManager mAm;
+    private static final int LONGSHOT_CANCEL_THRESHOLD = 40 * 1024 * 1024;
     private long SECONDARY_SERVER_MEM;
-    private long mMB = 1024 * 1024;
     private boolean mLongshotActive = false;
 
     // We use a queue to generated names of the images to be used later
@@ -489,7 +485,6 @@ public class PhotoModule
         mCameraId = getPreferredCameraId(mPreferences);
 
         mContentResolver = mActivity.getContentResolver();
-        mAm = (ActivityManager)(mActivity.getSystemService(Context.ACTIVITY_SERVICE));
 
         // Surface texture is from camera screen nail and startPreview needs it.
         // This must be done before startPreview.
@@ -521,10 +516,6 @@ public class PhotoModule
         brightnessProgressBar.setVisibility(View.INVISIBLE);
         Storage.setSaveSDCard(
             mPreferences.getString(CameraSettings.KEY_CAMERA_SAVEPATH, "0").equals("1"));
-
-        ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
-        mAm.getMemoryInfo(memInfo);
-        SECONDARY_SERVER_MEM = memInfo.secondaryServerThreshold;
 
         mSoundPool = new SoundPool(1, AudioManager.STREAM_NOTIFICATION, 0);
         mRefocusSound = mSoundPool.load(mActivity, R.raw.camera_click_x5, 1);
@@ -808,16 +799,6 @@ public class PhotoModule
                 Toast.LENGTH_SHORT).show();
     }
 
-    private void keepMediaProviderInstance() {
-        // We want to keep a reference to MediaProvider in camera's lifecycle.
-        // TODO: Utilize mMediaProviderClient instance to replace
-        // ContentResolver calls.
-        if (mMediaProviderClient == null) {
-            mMediaProviderClient = mContentResolver
-                    .acquireContentProviderClient(MediaStore.AUTHORITY);
-        }
-    }
-
     // Snapshots can only be taken after this is called. It should be called
     // once only. We could have done these things in onCreate() but we want to
     // make preview screen appear as soon as possible.
@@ -830,8 +811,6 @@ public class PhotoModule
         boolean recordLocation = RecordLocationPreference.get(
                 mPreferences, mContentResolver);
         mLocationManager.recordLocation(recordLocation);
-
-        keepMediaProviderInstance();
 
         mUI.initializeFirstTime();
         MediaSaveService s = mActivity.getMediaSaveService();
@@ -873,7 +852,6 @@ public class PhotoModule
             mUI.showSwitcher();
         }
         mUI.initializeSecondTime(mParameters);
-        keepMediaProviderInstance();
     }
 
     private void showTapToFocusToastIfNeeded() {
@@ -936,20 +914,29 @@ public class PhotoModule
         }
     }
 
+    // TODO: need to check cached background apps memory and longshot ION memory
     private boolean isLongshotNeedCancel() {
+        if (SECONDARY_SERVER_MEM == 0) {
+            ActivityManager am = (ActivityManager) mActivity.getSystemService(
+                    Context.ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+            am.getMemoryInfo(memInfo);
+            SECONDARY_SERVER_MEM = memInfo.secondaryServerThreshold;
+        }
 
-        long totalMemory = Runtime.getRuntime().totalMemory() / mMB;
-        long maxMemory = Runtime.getRuntime().maxMemory() / mMB;
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        long maxMemory = Runtime.getRuntime().maxMemory();
         long remainMemory = maxMemory - totalMemory;
 
-        mMemInfoReader.readMemInfo();
-        long availMem = mMemInfoReader.getFreeSize() + mMemInfoReader.getCachedSize()
-            - SECONDARY_SERVER_MEM;
-        availMem = availMem/ mMB;
+        MemInfoReader reader = new MemInfoReader();
+        reader.readMemInfo();
+        long[] info = reader.getRawInfo();
+        long availMem = (info[Debug.MEMINFO_FREE] + info[Debug.MEMINFO_CACHED]) * 1024;
 
-        if(availMem <= 0 ||
-            remainMemory <= LONGSHOT_CANCEL_THRESHOLD) {
-            Log.d(TAG, "memory used up, need cancel longshot.");
+        if (availMem <= SECONDARY_SERVER_MEM || remainMemory <= LONGSHOT_CANCEL_THRESHOLD) {
+            Log.e(TAG, "cancel longshot: free=" + info[Debug.MEMINFO_FREE] * 1024
+                    + " cached=" + info[Debug.MEMINFO_CACHED] * 1024
+                    + " threshold=" + SECONDARY_SERVER_MEM);
             mLongshotActive = false;
             RotateTextToast.makeText(mActivity,R.string.msg_cancel_longshot_for_limited_memory,
                 Toast.LENGTH_SHORT).show();
@@ -1917,12 +1904,7 @@ public class PhotoModule
     }
 
     @Override
-    public void onStop() {
-        if (mMediaProviderClient != null) {
-            mMediaProviderClient.release();
-            mMediaProviderClient = null;
-        }
-    }
+    public void onStop() {}
 
     @Override
     public void onCaptureCancelled() {
@@ -2151,6 +2133,10 @@ public class PhotoModule
                 boolean enable = SystemProperties.getBoolean(PERSIST_LONG_SAVE, false);
                 mLongshotSave = enable;
 
+                //Cancel the previous countdown when long press shutter button for longshot.
+                if (mUI.isCountingDown()) {
+                    mUI.cancelCountDown();
+                }
                 //check whether current memory is enough for longshot.
                 if(isLongshotNeedCancel()) {
                     return;
