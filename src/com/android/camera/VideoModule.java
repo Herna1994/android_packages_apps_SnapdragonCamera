@@ -907,7 +907,8 @@ public class VideoModule implements CameraModule,
             return;
         }
         mParameters = mCameraDevice.getParameters();
-        if (mParameters.getSupportedVideoSizes() == null || is1080pEnabled() || is720pEnabled() ||
+        if (mParameters.getSupportedVideoSizes() == null ||
+                    is4KEnabled() || is1080pEnabled() || is720pEnabled() ||
                     isHFREnabled(mProfile.videoFrameWidth, mProfile.videoFrameHeight)) {
             mDesiredPreviewWidth = mProfile.videoFrameWidth;
             mDesiredPreviewHeight = mProfile.videoFrameHeight;
