@@ -23,10 +23,7 @@
         <item>@string/pref_video_quality_entry_1080p</item>
         <item>@string/pref_video_quality_entry_720p</item>
         <item>@string/pref_video_quality_entry_480p</item>
-        <item>@string/pref_video_quality_entry_fwvga</item>
-        <item>@string/pref_video_quality_entry_wvga</item>
         <item>@string/pref_video_quality_entry_vga</item>
-        <item>@string/pref_video_quality_entry_wqvga</item>
         <item>@string/pref_video_quality_entry_cif</item>
         <item>@string/pref_video_quality_entry_qvga</item>
         <item>@string/pref_video_quality_entry_qcif</item>
@@ -43,14 +40,8 @@
         <item>5</item>
         <!-- The integer value of CamcorderProfile.QUALITY_480P -->
         <item>4</item>
-        <!-- The integer value of CamcorderProfile.QUALITY_FWVGA -->
-        <item>12</item>
-        <!-- The integer value of CamcorderProfile.QUALITY_WVGA -->
-        <item>9</item>
         <!-- The integer value of CamcorderProfile.QUALITY_VGA -->
         <item>10</item>
-        <!-- The integer value of CamcorderProfile.QUALITY_WQVGA -->
-        <item>11</item>
         <!-- The integer value of CamcorderProfile.QUALITY_CIF -->
         <item>@string/pref_video_quality_default</item>
         <!-- The integer value of CamcorderProfile.QUALITY_QVGA -->
