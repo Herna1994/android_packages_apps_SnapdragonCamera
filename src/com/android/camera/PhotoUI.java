@@ -1005,6 +1005,7 @@ public class PhotoUI implements PieListener,
     }
 
     protected void showCapturedImageForReview(byte[] jpegData, int orientation, boolean mirror) {
+        mCameraControls.hideCameraSettings();
         mDecodeTaskForReview = new DecodeImageForReview(jpegData, orientation, mirror);
         mDecodeTaskForReview.execute();
         mOnScreenIndicators.setVisibility(View.GONE);
@@ -1016,6 +1017,7 @@ public class PhotoUI implements PieListener,
     }
 
     protected void hidePostCaptureAlert() {
+        mCameraControls.showCameraSettings();
         if (mDecodeTaskForReview != null) {
             mDecodeTaskForReview.cancel(true);
         }
