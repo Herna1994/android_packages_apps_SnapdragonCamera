@@ -2657,7 +2657,6 @@ public class PhotoModule
 
         setCameraParameters(UPDATE_PARAM_ALL);
 
-        mCameraDevice.startPreview();
         mCameraDevice.setOneShotPreviewCallback(mHandler,
                 new CameraManager.CameraPreviewDataCallback() {
                     @Override
@@ -2665,6 +2664,8 @@ public class PhotoModule
                         mUI.hidePreviewCover();
                     }
                 });
+        mCameraDevice.startPreview();
+
         mHandler.sendEmptyMessage(ON_PREVIEW_STARTED);
 
         setDisplayOrientation();
